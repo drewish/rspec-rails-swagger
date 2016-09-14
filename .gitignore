@@ -1,0 +1,5 @@
+# We want to test multiple versions on Travis
+Gemfile.lock
+
+.bundle/
+rspec-swagger-*.gem

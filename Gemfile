@@ -1,6 +1,6 @@
-# frozen_string_literal: true
-# A sample Gemfile
 source "https://rubygems.org"
+
+gemspec
 
 # Allow the rails version to come from an ENV setting so Tavis can test multiple
 # versions. Inspired by http://www.schneems.com/post/50991826838/testing-against-multiple-rails-versions/
