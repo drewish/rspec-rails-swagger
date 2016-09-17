@@ -1,4 +1,4 @@
-require 'rspec/swagger'
+require 'spec_helper'
 
 RSpec.describe RSpec::Swagger do
   it "loads" do
