@@ -1,53 +1,28 @@
-require 'rails_helper'
-
-module SwaggerPath
-  def path template, &block
-    describe "path #{template}", {swagger_path: template}, &block
-  end
-end
-
-module SwaggerOperation
-  def operation verb, &block
-    verb = verb.to_s.downcase
-    describe verb.to_s, {swagger_operation: verb.to_sym}, &block
-  end
-end
-
-module SwaggerRequest
-  def test_request code, params = {}, headers = {}
-    path = metadata[:swagger_path]
-    method = metadata[:swagger_operation]
-
-    # binding.pry
-    args = if Rails::VERSION::MAJOR >= 5
-      [path, { params: params, headers: headers }]
-    else
-      [path, params, headers]
-    end
-
-    it "does stuff" do
-      # binding.pry
-      self.send(method, *args)
-      expect(response).to have_http_status(code)
-    end
-  end
-end
-
-RSpec.configure do |c|
-  c.extend SwaggerPath, type: :request
-  c.extend SwaggerOperation, :swagger_path
-  c.extend SwaggerRequest, :swagger_operation
-end
-
+require 'swagger_helper'
 
 RSpec.describe "Requestsing", type: :request do
   path '/posts' do
-    operation "GET" do
-      test_request(200, {}, {'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json'})
+    operation "GET", "fetch list" do
+      # params
+      response(200, "successful", {}, {'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json'})
     end
 
-    operation "POST" do
-      test_request(201, { post: { title: 'asdf', body: "blah" } }.to_json, {'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json'})
+    operation "POST", "create" do
+      # params
+      response(201, "successfully created", { post: { title: 'asdf', body: "blah" } }.to_json, {'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json'}) do
+        capture_example
+      end
+    end
+  end
+
+  path '/posts/1' do
+    parameter "path-param", {in: :path}
+    operation "GET", "fetch item" do
+      before { Post.new.save }
+      parameter "op-param"
+      response(200, "success", {}, {'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json'}) do
+        capture_example
+      end
     end
   end
 end

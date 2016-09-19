@@ -1,5 +1,4 @@
 #!/bin/bash
-
 set -x
 
 # export RAILS_VERSION=3.2.0

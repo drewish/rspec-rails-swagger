@@ -2,6 +2,12 @@
 
 The design of this is heavily influenced by the awesome [swagger_rails](https://github.com/domaindrivendev/swagger_rails) gem.
 
+## Setup
+
+- install gem
+- `rails generate rspec:install`
+- create `spec/swagger_helper.rb` ... would be nice to be a generator
+
 
 ## Running tests
 

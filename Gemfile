@@ -16,6 +16,7 @@ rails_gem = case rails_version
 gem 'rails', rails_gem
 gem 'sqlite3'
 gem 'pry'
+gem 'pry-byebug'
 
 # Rails 3 requires this but it was removed in Ruby 2.2
 gem 'test-unit', '~> 3.0' if rails_major == '3'

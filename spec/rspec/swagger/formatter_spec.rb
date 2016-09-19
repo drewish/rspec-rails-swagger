@@ -4,41 +4,93 @@ RSpec.describe RSpec::Swagger::Formatter do
   let(:output) { StringIO.new }
   let(:formatter) { described_class.new(output) }
 
-  let(:group_notification) { double(group: group) }
-  let(:group) { double(metadata: metadata) }
-  let(:metadata) { {} }
+  let(:documents) do
+    {
+      'minimal.json' => {
+        swagger: '2.0',
+        info: {
+          version: '0.0.0',
+          title: 'Simple API'
+        }
+      }
+    }
+  end
 
-  describe "#example_group_started" do
-    context "groups with no type" do
-      let(:metadata) { {} }
+  before do
+    RSpec.configure {|c| c.swagger_docs = documents }
+  end
 
-      it "ignores" do
-        formatter.example_group_started(group_notification)
+  describe "#example_finished" do
+    let(:example_notification) { double('Notification', example: double('Example', metadata: metadata)) }
+    let(:metadata) { {} }
 
-        expect(formatter).not_to be_watching
+    context "minimal" do
+      let(:metadata) do
+        {
+          swagger_object: :response,
+          swagger_data: {path: "/ping", operation: :put, status_code: 200, response_description: 'OK', example: nil}
+        }
       end
-    end
 
-    context "groups with type request" do
-      let(:metadata) { {type: :request} }
+      it "copies the requests into the document" do
+        formatter.example_finished(example_notification)
 
-      it "watches" do
-        formatter.example_group_started(group_notification)
-
-        expect(formatter).to be_watching
+        expect(formatter.documents.values.first).to eq({
+          swagger: '2.0',
+          info: {
+            version: '0.0.0',
+            title: 'Simple API'
+          },
+          paths: {
+            '/ping' => {
+              put: {
+                responses: {200 => {description: 'OK'}}
+              }
+            }
+          }
+        })
       end
     end
   end
 
-  describe "#example_group_finished" do
-    let(:metadata) { {} }
+  describe "#close" do
+    let(:blank_notification) { double('Notification') }
 
-    it "resets to watching" do
-      formatter.example_group_started(group_notification)
-      expect(formatter).not_to be_watching
-
-      formatter.example_group_finished(group_notification)
-      expect(formatter).to be_watching
+    context "no relevant examples" do
+      it "writes document with no changes" do
+        expect(formatter).to receive(:write_json).with(documents.keys.first, documents.values.first)
+        formatter.close(blank_notification)
+      end
     end
+
+    context "with a relevant example" do
+      let(:example_notification) {  double(example: double(metadata: metadata)) }
+      let(:metadata) do
+        {
+          swagger_object: :response,
+          swagger_data: {path: '/ping', operation: :get, status_code: 200, response_description: 'all good' }
+        }
+      end
+
+      it "writes a document with the request" do
+        formatter.example_finished(example_notification)
+
+        expect(formatter).to receive(:write_json).with(
+          documents.keys.first,
+          documents.values.first.merge({
+            paths: {
+              '/ping' => {
+                get: {
+                  responses: {200 => {description: 'all good'}}
+                }
+              }
+            }
+          })
+        )
+
+        formatter.close(blank_notification)
+      end
+    end
+
   end
 end
