@@ -9,7 +9,13 @@ Gem::Specification.new do |s|
   s.description = "Inspired by swagger_rails"
   s.author      = "andrew morton"
   s.email       = 'drewish@katherinehouse.com'
-  s.files       = ['lib/rspec/swagger.rb', 'lib/rspec/swagger/version.rb']
+  s.files       = [
+    'lib/rspec/swagger.rb',
+    'lib/rspec/swagger/configuration.rb',
+    'lib/rspec/swagger/formatter.rb',
+    'lib/rspec/swagger/helpers.rb',
+    'lib/rspec/swagger/version.rb',
+  ]
   s.homepage    = 'https://github.com/drewish/rspec-swagger'
 
   s.required_ruby_version = '~> 2.0'

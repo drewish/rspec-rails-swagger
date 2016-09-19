@@ -19,7 +19,7 @@ RSpec.describe "Requestsing", type: :request do
     parameter "path-param", {in: :path}
     operation "GET", "fetch item" do
       before { Post.new.save }
-      parameter "op-param"
+      parameter "op-param", {in: :query}
       response(200, "success", {}, {'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json'}) do
         capture_example
       end

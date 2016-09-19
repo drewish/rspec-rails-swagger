@@ -63,22 +63,40 @@ paths: (Paths)
       end
 
       module Parameters
-        def parameter name, args = {}
-          # TODO these should be unique by (name, in) so we should use a hash
-          # to store them instead of an array.
-          param_key = "#{metadata[:swagger_object]}_params".to_s
-          params = metadata[:swagger_data][param_key] ||= []
-          params << { name: name }.merge(args)
+        def parameter name, attributes = {}
+          attributes.symbolize_keys!
+
+          raise ArgumentError, "Missing 'in' parameter" unless attributes[:in]
+          locations = [:query, :header, :path, :formData, :body]
+          unless locations.include? attributes[:in]
+            raise ArgumentError, "Invalid 'in' parameter, must be one of #{locations}"
+          end
+
+          # if name.respond_to?(:has_key?)
+          #   param = { '$ref' => name.delete(:ref) || name.delete('ref') }
+          # end
+
+          params_key = "#{metadata[:swagger_object]}_params".to_sym
+          params = metadata[:swagger_data][params_key] ||= {}
+
+          param = { name: name.to_s }.merge(attributes)
+          # Params should be unique based on the 'name' and 'in' values.
+          param_key = "#{param[:in]}&#{param[:name]}"
+          params[param_key] = param
         end
       end
 
       module Operation
-        def response code, desc, params = {}, headers = {}, &block
+        def response status_code, desc, params = {}, headers = {}, &block
+          unless status_code == :default || (100..599).cover?(status_code)
+            raise ArgumentError, "status_code must be between 100 and 599 or :default"
+          end
+
           meta = {
             swagger_object: :status_code,
-            swagger_data: metadata[:swagger_data].merge(status_code: code, response_description: desc)
+            swagger_data: metadata[:swagger_data].merge(status_code: status_code, response_description: desc)
           }
-          describe("#{code}", meta) do
+          describe("#{status_code}", meta) do
             self.module_exec(&block) if block_given?
 
             method = metadata[:swagger_data][:operation]
@@ -105,7 +123,7 @@ paths: (Paths)
                 example.merge!( body: response.body, content_type: response.content_type.to_s)
               end
 
-              expect(response).to have_http_status(code)
+              expect(response).to have_http_status(status_code)
             end
           end
         end
