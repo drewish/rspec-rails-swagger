@@ -11,6 +11,7 @@ module RSpec
         config.extend Operation,   swagger_object: :operation
         config.extend Parameters,  swagger_object: :operation
         config.extend Response,    swagger_object: :status_code
+        config.include Common,     :swagger_object
       end
 
 
@@ -42,6 +43,8 @@ paths: (Paths)
 =end
       module Paths
         def path template, &block
+          raise ArgumentError, "Path must start with a /" unless template.starts_with?('/')
+
           #TODO template might be a $ref
           meta = {
             swagger_object: :path_item,
@@ -53,6 +56,8 @@ paths: (Paths)
 
       module PathItem
         def operation verb, desc, &block
+          # TODO, check verbs against a whitelist
+
           verb = verb.to_s.downcase
           meta = {
             swagger_object: :operation,
@@ -72,12 +77,14 @@ paths: (Paths)
             raise ArgumentError, "Invalid 'in' parameter, must be one of #{locations}"
           end
 
+          # Path attributes are always required
+          attributes[:required] = true if attributes[:in] == :path
+
           # if name.respond_to?(:has_key?)
           #   param = { '$ref' => name.delete(:ref) || name.delete('ref') }
           # end
 
-          params_key = "#{metadata[:swagger_object]}_params".to_sym
-          params = metadata[:swagger_data][params_key] ||= {}
+          params = metadata[:swagger_data][:params] ||= {}
 
           param = { name: name.to_s }.merge(attributes)
           # Params should be unique based on the 'name' and 'in' values.
@@ -89,9 +96,8 @@ paths: (Paths)
       module Operation
         def response status_code, desc, params = {}, headers = {}, &block
           unless status_code == :default || (100..599).cover?(status_code)
-            raise ArgumentError, "status_code must be between 100 and 599 or :default"
+            raise ArgumentError, "status_code must be an integer 100 to 599, or :default"
           end
-
           meta = {
             swagger_object: :status_code,
             swagger_data: metadata[:swagger_data].merge(status_code: status_code, response_description: desc)
@@ -99,30 +105,29 @@ paths: (Paths)
           describe("#{status_code}", meta) do
             self.module_exec(&block) if block_given?
 
-            method = metadata[:swagger_data][:operation]
-            path = metadata[:swagger_data][:path]
-            args = if ::Rails::VERSION::MAJOR >= 5
-              [path, {params: params, headers: headers}]
-            else
-              [path, params, headers]
-            end
-
             # TODO: this needs a better mechanism
             if metadata[:capture_example]
               example = metadata[:swagger_data][:example] = {}
             end
 
-            meta = {
-              swagger_object: :response
-              # response: metadata[:swagger_data][:response].merge()
-            }
-            it("matches", meta) do
-              self.send(method, *args)
-
-              if response && example
-                example.merge!( body: response.body, content_type: response.content_type.to_s)
+            before do |example|
+              method = example.metadata[:swagger_data][:operation]
+              path = resolve_path(example.metadata[:swagger_data][:path], self)
+              args = if ::Rails::VERSION::MAJOR >= 5
+                [path, {params: params, headers: headers}]
+              else
+                [path, params, headers]
               end
 
+              self.send(method, *args)
+
+# TODO fix the naming collision
+              # if example
+              #   example.merge!(body: response.body, content_type: response.content_type.to_s)
+              # end
+            end
+
+            it("matches", { swagger_object: :response }) do
               expect(response).to have_http_status(status_code)
             end
           end
@@ -132,6 +137,21 @@ paths: (Paths)
       module Response
         def capture_example
           metadata[:capture_example] = true
+        end
+      end
+
+      module Common
+        def resolve_params swagger_data, group_instance
+          # TODO resolve $refs
+          # TODO there should only be one body param
+          # TODO there should not be both body and formData params
+          swagger_data[:params].values.map do |p|
+            p.slice(:name, :in).merge(value: group_instance.send(p[:name]))
+          end
+        end
+
+        def resolve_path template, group_instance
+          template.gsub(/(\{.*?\})/){|match| group_instance.send(match[1...-1]) }
         end
       end
     end

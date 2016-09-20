@@ -15,8 +15,10 @@ RSpec.describe "Requestsing", type: :request do
     end
   end
 
-  path '/posts/1' do
-    parameter "path-param", {in: :path}
+  path '/posts/{post_id}' do
+    parameter "post_id", {in: :path}
+    let(:post_id) { 1 }
+
     operation "GET", "fetch item" do
       before { Post.new.save }
       parameter "op-param", {in: :query}
