@@ -12,6 +12,7 @@ Gem::Specification.new do |s|
   s.files       = [
     'lib/rspec/swagger.rb',
     'lib/rspec/swagger/configuration.rb',
+    'lib/rspec/swagger/document.rb',
     'lib/rspec/swagger/formatter.rb',
     'lib/rspec/swagger/helpers.rb',
     'lib/rspec/swagger/version.rb',

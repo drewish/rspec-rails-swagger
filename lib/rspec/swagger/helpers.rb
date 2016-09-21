@@ -42,15 +42,20 @@ paths: (Paths)
           description: Invalid input
 =end
       module Paths
-        def path template, &block
+        def path template, attributes = {}, &block
+          attributes.symbolize_keys!
+
           raise ArgumentError, "Path must start with a /" unless template.starts_with?('/')
 
           #TODO template might be a $ref
           meta = {
             swagger_object: :path_item,
-            swagger_data: {path: template}
+            swagger_data: {
+              document: attributes[:swagger_document] || RSpec.configuration.swagger_docs.keys.first,
+              path: template
+            }
           }
-          describe("path #{template}", meta, &block)
+          describe(template, meta, &block)
         end
       end
 

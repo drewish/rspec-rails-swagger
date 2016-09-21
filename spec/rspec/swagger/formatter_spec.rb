@@ -3,15 +3,14 @@ require "spec_helper"
 RSpec.describe RSpec::Swagger::Formatter do
   let(:output) { StringIO.new }
   let(:formatter) { described_class.new(output) }
-
-  let(:documents) do
+  let(:documents) { {'minimal.json' => minimal} }
+  # Make this a method to bypass rspec's memoization.
+  def minimal
     {
-      'minimal.json' => {
-        swagger: '2.0',
-        info: {
-          version: '0.0.0',
-          title: 'Simple API'
-        }
+      swagger: '2.0',
+      info: {
+        version: '0.0.0',
+        title: 'Simple API'
       }
     }
   end
@@ -24,11 +23,17 @@ RSpec.describe RSpec::Swagger::Formatter do
     let(:example_notification) { double('Notification', example: double('Example', metadata: metadata)) }
     let(:metadata) { {} }
 
-    context "minimal" do
+    context "with a single document" do
       let(:metadata) do
         {
           swagger_object: :response,
-          swagger_data: {path: "/ping", operation: :put, status_code: 200, response_description: 'OK', example: nil}
+          swagger_data: {
+            path: "/ping",
+            operation: :put,
+            status_code: 200,
+            response_description: 'OK',
+            example: nil
+          }
         }
       end
 
@@ -49,6 +54,28 @@ RSpec.describe RSpec::Swagger::Formatter do
             }
           }
         })
+      end
+    end
+
+    context "with multiple documents" do
+      let(:documents) { {'doc1.json' => minimal, 'doc2.json' => minimal} }
+      let(:metadata) do
+        {
+          swagger_object: :response,
+          swagger_data: {
+            document: 'doc2.json',
+            path: "/ping",
+            operation: :put,
+            status_code: 200
+          }
+        }
+      end
+
+      it "puts the response on the right document" do
+        formatter.example_finished(example_notification)
+
+        expect(formatter.documents['doc1.json'][:paths]).to be_blank
+        expect(formatter.documents['doc2.json'][:paths].length).to eq(1)
       end
     end
   end
@@ -91,6 +118,5 @@ RSpec.describe RSpec::Swagger::Formatter do
         formatter.close(blank_notification)
       end
     end
-
   end
 end

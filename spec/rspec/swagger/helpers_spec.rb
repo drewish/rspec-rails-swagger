@@ -14,6 +14,31 @@ RSpec.describe RSpec::Swagger::Helpers::Paths do
     expect{ subject.path("foo") }.to raise_exception(ArgumentError)
     expect{ subject.path("/foo") }.not_to raise_exception
   end
+
+  it "defaults to the first swagger document if not specified" do
+    expect(subject).to receive(:describe).with("/ping", {
+      swagger_object: :path_item,
+      swagger_data: {
+        document: RSpec.configuration.swagger_docs.keys.first,
+        path: '/ping'
+      }
+    })
+
+    subject.path('/ping')
+  end
+
+  it "accepts specified swagger document name" do
+    expect(subject).to receive(:describe).with("/ping", {
+      swagger_object: :path_item,
+      swagger_data: {
+        document: 'hello_swagger.json',
+        path: '/ping'
+      }
+    })
+
+    subject.path('/ping', swagger_document: 'hello_swagger.json')
+  end
+
 end
 
 RSpec.describe RSpec::Swagger::Helpers::Parameters do
@@ -109,7 +134,7 @@ RSpec.describe RSpec::Swagger::Helpers::Resolver do
     end
   end
 
-  describe("#resolve_params", swagger_object: :something) do
+  describe("#resolve_path", swagger_object: :something) do
     describe "with a missing value" do
       it "raises an error" do
         expect{ resolve_path('/sites/{site_id}', self) }.to raise_exception(NoMethodError)

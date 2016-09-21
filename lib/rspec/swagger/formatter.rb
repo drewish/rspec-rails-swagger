@@ -20,7 +20,7 @@ module RSpec
         return unless notification.example.metadata[:swagger_object] == :response
 
         data = notification.example.metadata[:swagger_data]
-        document = document_for(nil)
+        document = document_for(data[:document])
         path_item = path_item_for(document, data[:path])
         # TODO output path_item's parameters
         operation = operation_for(path_item, data[:operation])
@@ -42,7 +42,7 @@ module RSpec
         puts JSON.pretty_generate(document)
       end
 
-      def document_for doc_name = nil
+      def document_for(doc_name = nil)
         if doc_name
           documents.fetch(doc_name)
         else
@@ -50,21 +50,21 @@ module RSpec
         end
       end
 
-      def path_item_for document, path_name
+      def path_item_for(document, path_name)
         document[:paths] ||= {}
         document[:paths][path_name] ||= {}
       end
 
-      def operation_for path, operation_name
+      def operation_for(path, operation_name)
         path[operation_name] ||= {responses: {}}
       end
 
-      def response_for operation, status_code
+      def response_for(operation, status_code)
         operation[:responses][status_code] ||= {}
       end
 
 
-      def prepare_example example
+      def prepare_example(example)
         mime_type = example[:content_type]
         body = example[:body]
         if mime_type == 'application/json'
