@@ -83,7 +83,7 @@ RSpec.describe RSpec::Swagger::Helpers::Operation do
 end
 
 
-RSpec.describe RSpec::Swagger::Helpers::Common do
+RSpec.describe RSpec::Swagger::Helpers::Resolver do
   # Tthis helper is an include rather than an extend we can get it pulled into
   # the test just by matching the filter metadata.
   describe("#resolve_params", swagger_object: :something) do

@@ -8,8 +8,16 @@ RSpec.describe "Requestsing", type: :request do
     end
 
     operation "POST", "create" do
-      # params
+      parameter "body", in: :body
+      let(:body) { { post: { title: 'asdf', body: "blah" } } }
+
+# TODO: it should pull the body from the params
       response(201, "successfully created", { post: { title: 'asdf', body: "blah" } }.to_json, {'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json'}) do
+        it "uses the body we passed in" do
+          post = JSON.parse(response.body)
+          expect(post["title"]).to eq('asdf')
+          expect(post["body"]).to eq('blah')
+        end
         capture_example
       end
     end

@@ -21,8 +21,10 @@ module RSpec
 
         data = notification.example.metadata[:swagger_data]
         document = document_for(nil)
-        path = path_for(document, data[:path])
-        operation = operation_for(path, data[:operation])
+        path_item = path_item_for(document, data[:path])
+        # TODO output path_item's parameters
+        operation = operation_for(path_item, data[:operation])
+        # TODO output operation's parameters
         response = response_for(operation, data[:status_code])
         response[:description] = data[:response_description] if data[:response_description]
         response[:examples] = prepare_example(data[:example]) if data[:example]
@@ -37,7 +39,7 @@ module RSpec
       end
 
       def write_json(name, document)
-        pp document
+        puts JSON.pretty_generate(document)
       end
 
       def document_for doc_name = nil
@@ -48,7 +50,7 @@ module RSpec
         end
       end
 
-      def path_for document, path_name
+      def path_item_for document, path_name
         document[:paths] ||= {}
         document[:paths][path_name] ||= {}
       end

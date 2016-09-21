@@ -11,7 +11,7 @@ module RSpec
         config.extend Operation,   swagger_object: :operation
         config.extend Parameters,  swagger_object: :operation
         config.extend Response,    swagger_object: :status_code
-        config.include Common,     :swagger_object
+        config.include Resolver,   :swagger_object
       end
 
 
@@ -105,11 +105,6 @@ paths: (Paths)
           describe("#{status_code}", meta) do
             self.module_exec(&block) if block_given?
 
-            # TODO: this needs a better mechanism
-            if metadata[:capture_example]
-              example = metadata[:swagger_data][:example] = {}
-            end
-
             before do |example|
               method = example.metadata[:swagger_data][:operation]
               path = resolve_path(example.metadata[:swagger_data][:path], self)
@@ -119,15 +114,18 @@ paths: (Paths)
                 [path, params, headers]
               end
 
+              # Run the request
               self.send(method, *args)
 
-# TODO fix the naming collision
-              # if example
-              #   example.merge!(body: response.body, content_type: response.content_type.to_s)
-              # end
+              if example.metadata[:capture_example]
+                example.metadata[:swagger_data][:example] = {
+                  body: response.body,
+                  content_type: response.content_type.to_s
+                }
+              end
             end
 
-            it("matches", { swagger_object: :response }) do
+            it("returns the correct status code", { swagger_object: :response }) do
               expect(response).to have_http_status(status_code)
             end
           end
@@ -140,17 +138,20 @@ paths: (Paths)
         end
       end
 
-      module Common
+      module Resolver
         def resolve_params swagger_data, group_instance
+          params = swagger_data[:params].values
           # TODO resolve $refs
           # TODO there should only be one body param
           # TODO there should not be both body and formData params
-          swagger_data[:params].values.map do |p|
+          params.map do |p|
             p.slice(:name, :in).merge(value: group_instance.send(p[:name]))
           end
         end
 
         def resolve_path template, group_instance
+          # Should check that the parameter is actually defined before trying
+          # fetch a value?
           template.gsub(/(\{.*?\})/){|match| group_instance.send(match[1...-1]) }
         end
       end
