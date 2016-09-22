@@ -1,4 +1,4 @@
-require "spec_helper"
+require 'swagger_helper'
 
 RSpec.describe RSpec::Swagger::Formatter do
   let(:output) { StringIO.new }

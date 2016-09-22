@@ -46,23 +46,23 @@ module RSpec
           #TODO template might be a $ref
           meta = {
             swagger_object: :path_item,
-            swagger_data: {
-              document: attributes[:swagger_document] || RSpec.configuration.swagger_docs.keys.first,
-              path: template
-            }
+            swagger_document: attributes[:swagger_document] || RSpec.configuration.swagger_docs.keys.first,
+            swagger_path_item: {path: template}
           }
           describe(template, meta, &block)
         end
       end
 
       module PathItem
-        def operation verb, desc, &block
+        def operation verb, attributes = {}, &block
+          attributes.symbolize_keys!
+
           # TODO, check verbs against a whitelist
 
           verb = verb.to_s.downcase
           meta = {
             swagger_object: :operation,
-            swagger_data: metadata[:swagger_data].merge(operation: verb.to_sym, operation_description: desc)
+            swagger_operation: attributes.merge(method: verb.to_sym).reject{ |v| v.nil? }
           }
           describe(verb.to_s, meta, &block)
         end
@@ -72,10 +72,26 @@ module RSpec
         def parameter name, attributes = {}
           attributes.symbolize_keys!
 
-          raise ArgumentError, "Missing 'in' parameter" unless attributes[:in]
+          raise ArgumentError, "Parameter is missing required 'in' value." unless attributes[:in]
           locations = [:query, :header, :path, :formData, :body]
+
           unless locations.include? attributes[:in]
-            raise ArgumentError, "Invalid 'in' parameter, must be one of #{locations}"
+            raise ArgumentError, "Parameter has an invalid 'in' value. Try: #{locations}."
+          end
+
+          if attributes[:in] == :body
+            unless attributes[:schema].present?
+              raise ArgumentError, "Parameter is missing required 'schema' value."
+            end
+          else
+            unless attributes[:type].present?
+              raise ArgumentError, "Parameter is missing required 'type' value."
+            end
+
+            types = %i(string number integer boolean array file)
+            unless types.include?(attributes[:type])
+              raise ArgumentError, "Parameter has an invalid 'type' value. Try: #{types}."
+            end
           end
 
           # Path attributes are always required
@@ -85,9 +101,12 @@ module RSpec
           #   param = { '$ref' => name.delete(:ref) || name.delete('ref') }
           # end
 
-          params = metadata[:swagger_data][:params] ||= {}
+          object_key = "swagger_#{metadata[:swagger_object]}".to_sym
+          object_data = metadata[object_key] ||= {}
 
+          params = object_data[:parameters] ||= {}
           param = { name: name.to_s }.merge(attributes)
+
           # Params should be unique based on the 'name' and 'in' values.
           param_key = "#{param[:in]}&#{param[:name]}"
           params[param_key] = param
@@ -96,29 +115,28 @@ module RSpec
 
       module Operation
         def consumes *mime_types
-          metadata[:swagger_data][:consumes] = mime_types
+          metadata[:swagger_operation][:consumes] = mime_types
         end
 
         def produces *mime_types
-          metadata[:swagger_data][:produces] = mime_types
+          metadata[:swagger_operation][:produces] = mime_types
         end
 
-        def response status_code, desc, params = {}, headers = {}, &block
+        def response status_code, desc, params = {}, &block
           unless status_code == :default || (100..599).cover?(status_code)
             raise ArgumentError, "status_code must be an integer 100 to 599, or :default"
           end
           meta = {
             swagger_object: :status_code,
-            swagger_data: metadata[:swagger_data].merge(status_code: status_code, response_description: desc)
+            swagger_response: {status_code: status_code, description: desc}
           }
           describe(status_code, meta) do
             self.module_exec(&block) if block_given?
 
             before do |example|
-              swagger_data = example.metadata[:swagger_data]
-
-              path = resolve_path(swagger_data[:path], self)
-              headers = resolve_headers(swagger_data)
+              method = example.metadata[:swagger_operation][:method]
+              path = resolve_path(example.metadata[:swagger_path_item][:path], self)
+              headers = resolve_headers(example.metadata)
 
               # Run the request
               args = if ::Rails::VERSION::MAJOR >= 5
@@ -126,13 +144,11 @@ module RSpec
               else
                 [path, params, headers]
               end
-              self.send(swagger_data[:operation], *args)
+              self.send(method, *args)
 
               if example.metadata[:capture_example]
-                swagger_data[:example] = {
-                  body: response.body,
-                  content_type: response.content_type.to_s
-                }
+                examples = example.metadata[:swagger_response][:examples] ||= {}
+                examples[response.content_type.to_s] = response.body
               end
             end
 
@@ -150,38 +166,35 @@ module RSpec
       end
 
       module Resolver
-        # TODO Really hate that we have to keep passing swagger_data around
-        # like this
-        def load_document swagger_data
-          ::RSpec.configuration.swagger_docs[swagger_data[:document]]
+        def resolve_prodces metadata
+          metadata[:swagger_operation][:produces]
         end
 
-        def resolve_prodces swagger_data
-          swagger_data[:produces] #|| load_document(swagger_data)[:produces]
+        def resolve_consumes metadata
+          metadata[:swagger_operation][:consumes]
         end
 
-        def resolve_consumes swagger_data
-          swagger_data[:consumes] #|| load_document(swagger_data)[:consumes]
-        end
-
-        def resolve_headers swagger_data
+        def resolve_headers metadata
           headers = {}
           # Match the names that Rails uses internally
-          if produces = resolve_prodces(swagger_data)
+          if produces = resolve_prodces(metadata)
             headers['HTTP_ACCEPT'] = produces.join(';')
           end
-          if consumes = resolve_consumes(swagger_data)
+          if consumes = resolve_consumes(metadata)
             headers['CONTENT_TYPE'] = consumes.first
           end
           headers
         end
 
-        def resolve_params swagger_data, group_instance
-          params = swagger_data[:params].values
+        def resolve_params metadata, group_instance
+          path_item = metadata[:swagger_path_item] || {}
+          operation = metadata[:swagger_operation] || {}
+          params = path_item.fetch(:parameters, {}).merge(operation.fetch(:parameters, {}))
+
           # TODO resolve $refs
           # TODO there should only be one body param
           # TODO there should not be both body and formData params
-          params.map do |p|
+          params.values.map do |p|
             p.slice(:name, :in).merge(value: group_instance.send(p[:name]))
           end
         end

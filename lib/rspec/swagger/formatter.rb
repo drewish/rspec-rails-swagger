@@ -19,19 +19,15 @@ module RSpec
       def example_finished(notification)
         return unless notification.example.metadata[:swagger_object] == :response
 
-        data = notification.example.metadata[:swagger_data]
-        document = document_for(data[:document])
-        path_item = path_item_for(document, data[:path])
-        # TODO output path_item's parameters
-        operation = operation_for(path_item, data[:operation])
-        # TODO output operation's parameters
-        response = response_for(operation, data[:status_code])
-        response[:description] = data[:response_description] if data[:response_description]
-        response[:examples] = prepare_example(data[:example]) if data[:example]
+        notification.example.metadata.each do |k, v|
+          puts "#{k}\t#{v}" if k.to_s.starts_with?("swagger")
+        end
 
-        # notification.example.metadata.each do |k, v|
-        #   puts "#{k}\t#{v}" if k.to_s.starts_with?("swagger")
-        # end
+        metadata  = notification.example.metadata
+        document  = document_for(metadata[:swagger_document])
+        path_item = path_item_for(document, metadata[:swagger_path_item])
+        operation = operation_for(path_item, metadata[:swagger_operation])
+        response  = response_for(operation, metadata[:swagger_response])
       end
 
       def close(_notification)
@@ -50,30 +46,56 @@ module RSpec
         end
       end
 
-      def path_item_for(document, path_name)
+      def path_item_for(document, swagger_path_item)
+        name = swagger_path_item[:path]
+
         document[:paths] ||= {}
-        document[:paths][path_name] ||= {}
+        document[:paths][name] ||= {}
+        if swagger_path_item[:parameters]
+          document[:paths][name][:parameters] = prepare_parameters(swagger_path_item[:parameters])
+        end
+        document[:paths][name]
       end
 
-      def operation_for(path, operation_name)
-        path[operation_name] ||= {responses: {}}
+      def operation_for(path, swagger_operation)
+        method = swagger_operation[:method]
+
+        path[method] ||= {responses: {}}
+        path[method].tap do |operation|
+          if swagger_operation[:parameters]
+            operation[:parameters] = prepare_parameters(swagger_operation[:parameters])
+          end
+          operation.merge!(swagger_operation.slice(
+            :summary, :description, :externalDocs, :operationId,
+            :consumes, :produces, :schemes, :deprecated, :security
+          ))
+        end
       end
 
-      def response_for(operation, status_code)
-        operation[:responses][status_code] ||= {}
+      def response_for(operation, swagger_response)
+        status = swagger_response[:status_code]
+
+        operation[:responses][status] ||= {}
+        operation[:responses][status].tap do |response|
+          if swagger_response[:examples]
+            response[:examples] = prepare_examples(swagger_response[:examples])
+          end
+          response.merge!(swagger_response.slice(:description, :schema, :headers))
+        end
       end
 
+      def prepare_parameters(params)
+        params.values
+      end
 
-      def prepare_example(example)
-        mime_type = example[:content_type]
-        body = example[:body]
-        if mime_type == 'application/json'
+      def prepare_examples(examples)
+        if examples["application/json"].present?
           begin
-            body = JSON.parse(body)
+            examples["application/json"] = JSON.parse(examples["application/json"])
           rescue JSON::ParserError => e
           end
         end
-        { mime_type => body }
+        examples
       end
     end
   end

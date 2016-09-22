@@ -2,18 +2,18 @@ require 'swagger_helper'
 
 RSpec.describe "Requestsing", type: :request do
   path '/posts' do
-    operation "GET", "fetch list" do
+    operation "GET", summary:"fetch list" do
       produces 'application/json'
 
       # params
       response(200, "successful", {})
     end
 
-    operation "POST", "create" do
+    operation "POST",summary: "create" do
       produces 'application/json'
       consumes 'application/json'
 
-      parameter "body", in: :body
+      parameter "body", in: :body, schema: { foo: :bar}
       let(:body) { { post: { title: 'asdf', body: "blah" } } }
 
 # TODO: it should pull the body from the params
@@ -29,14 +29,14 @@ RSpec.describe "Requestsing", type: :request do
   end
 
   path '/posts/{post_id}' do
-    parameter "post_id", {in: :path}
+    parameter "post_id", {in: :path, type: :integer}
     let(:post_id) { 1 }
 
-    operation "GET", "fetch item" do
+    operation "GET", summary: "fetch item" do
       produces 'application/json'
 
       before { Post.new.save }
-      parameter "op-param", {in: :query}
+      parameter "op-param", {in: :query, type: :string}
       response(200, "success", {}) do
         capture_example
       end
