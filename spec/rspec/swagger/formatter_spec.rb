@@ -40,17 +40,10 @@ RSpec.describe RSpec::Swagger::Formatter do
       it "copies the requests into the document" do
         formatter.example_finished(example_notification)
 
-        expect(formatter.documents.values.first).to eq({
-          swagger: '2.0',
-          info: {
-            version: '0.0.0',
-            title: 'Simple API'
-          },
-          paths: {
-            '/ping' => {
-              put: {
-                responses: {200 => {description: 'OK'}}
-              }
+        expect(formatter.documents.values.first[:paths]).to eq({
+          '/ping' => {
+            put: {
+              responses: {200 => {description: 'OK'}}
             }
           }
         })

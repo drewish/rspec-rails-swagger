@@ -5,7 +5,7 @@ RSpec.describe RSpec::Swagger::Document do
   let(:data) { minimial_example }
 
   it "stores the data" do
-    expect(subject.data[:swagger]).to eq('2.0')
+    expect(subject[:swagger]).to eq('2.0')
   end
 
   describe "#resolve_ref" do

@@ -7,6 +7,10 @@ module RSpec
         @data = data.deep_symbolize_keys
       end
 
+      def [](value)
+        data[value]
+      end
+
       def resolve_ref(ref)
         unless %r{#/(?<location>parameters|definitions)/(?<name>.+)} =~ ref
           raise ArgumentError, "Invalid reference: #{ref}"

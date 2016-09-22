@@ -1,6 +1,29 @@
 module RSpec
   module Swagger
     module Helpers
+      # paths: (Paths)
+      #   /pets: (Path Item)
+      #     post: (Operation)
+      #       tags:
+      #         - pet
+      #       summary: Add a new pet to the store
+      #       description: ""
+      #       operationId: addPet
+      #       consumes:
+      #         - application/json
+      #       produces:
+      #         - application/json
+      #       parameters: (Parameters)
+      #         - in: body
+      #           name: body
+      #           description: Pet object that needs to be added to the store
+      #           required: false
+      #           schema:
+      #             $ref: "#/definitions/Pet"
+      #       responses: (Responses)
+      #         "405": (Response)
+      #           description: Invalid input
+
       # The helpers serve as a DSL.
       def self.add_swagger_type_configurations(config)
         # The filters are used to ensure that the methods are nested correctly
@@ -14,33 +37,6 @@ module RSpec
         config.include Resolver,   :swagger_object
       end
 
-
-=begin
-paths: (Paths)
-  /pets: (Path Item)
-    post: (Operation)
-      tags:
-        - pet
-      summary: Add a new pet to the store
-      description: ""
-      operationId: addPet
-      consumes:
-        - application/json
-        - application/xml
-      produces:
-        - application/json
-        - application/xml
-      parameters: (Parameters)
-        - in: body
-          name: body
-          description: Pet object that needs to be added to the store
-          required: false
-          schema:
-            $ref: "#/definitions/Pet"
-      responses: (Responses)
-        "405": (Response)
-          description: Invalid input
-=end
       module Paths
         def path template, attributes = {}, &block
           attributes.symbolize_keys!
@@ -99,6 +95,14 @@ paths: (Paths)
       end
 
       module Operation
+        def consumes *mime_types
+          metadata[:swagger_data][:consumes] = mime_types
+        end
+
+        def produces *mime_types
+          metadata[:swagger_data][:produces] = mime_types
+        end
+
         def response status_code, desc, params = {}, headers = {}, &block
           unless status_code == :default || (100..599).cover?(status_code)
             raise ArgumentError, "status_code must be an integer 100 to 599, or :default"
@@ -107,23 +111,25 @@ paths: (Paths)
             swagger_object: :status_code,
             swagger_data: metadata[:swagger_data].merge(status_code: status_code, response_description: desc)
           }
-          describe("#{status_code}", meta) do
+          describe(status_code, meta) do
             self.module_exec(&block) if block_given?
 
             before do |example|
-              method = example.metadata[:swagger_data][:operation]
-              path = resolve_path(example.metadata[:swagger_data][:path], self)
+              swagger_data = example.metadata[:swagger_data]
+
+              path = resolve_path(swagger_data[:path], self)
+              headers = resolve_headers(swagger_data)
+
+              # Run the request
               args = if ::Rails::VERSION::MAJOR >= 5
                 [path, {params: params, headers: headers}]
               else
                 [path, params, headers]
               end
-
-              # Run the request
-              self.send(method, *args)
+              self.send(swagger_data[:operation], *args)
 
               if example.metadata[:capture_example]
-                example.metadata[:swagger_data][:example] = {
+                swagger_data[:example] = {
                   body: response.body,
                   content_type: response.content_type.to_s
                 }
@@ -144,6 +150,32 @@ paths: (Paths)
       end
 
       module Resolver
+        # TODO Really hate that we have to keep passing swagger_data around
+        # like this
+        def load_document swagger_data
+          ::RSpec.configuration.swagger_docs[swagger_data[:document]]
+        end
+
+        def resolve_prodces swagger_data
+          swagger_data[:produces] #|| load_document(swagger_data)[:produces]
+        end
+
+        def resolve_consumes swagger_data
+          swagger_data[:consumes] #|| load_document(swagger_data)[:consumes]
+        end
+
+        def resolve_headers swagger_data
+          headers = {}
+          # Match the names that Rails uses internally
+          if produces = resolve_prodces(swagger_data)
+            headers['HTTP_ACCEPT'] = produces.join(';')
+          end
+          if consumes = resolve_consumes(swagger_data)
+            headers['CONTENT_TYPE'] = consumes.first
+          end
+          headers
+        end
+
         def resolve_params swagger_data, group_instance
           params = swagger_data[:params].values
           # TODO resolve $refs

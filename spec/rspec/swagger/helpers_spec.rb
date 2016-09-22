@@ -111,7 +111,7 @@ end
 RSpec.describe RSpec::Swagger::Helpers::Resolver do
   # Tthis helper is an include rather than an extend we can get it pulled into
   # the test just by matching the filter metadata.
-  describe("#resolve_params", swagger_object: :something) do
+  describe("#resolve_params", :swagger_object) do
     let(:swagger_data) { { params: params } }
 
     describe "with a missing value" do
@@ -134,7 +134,7 @@ RSpec.describe RSpec::Swagger::Helpers::Resolver do
     end
   end
 
-  describe("#resolve_path", swagger_object: :something) do
+  describe "#resolve_path", :swagger_object do
     describe "with a missing value" do
       it "raises an error" do
         expect{ resolve_path('/sites/{site_id}', self) }.to raise_exception(NoMethodError)
@@ -154,6 +154,28 @@ RSpec.describe RSpec::Swagger::Helpers::Resolver do
       xit "prefixes the path" do
 
       end
+    end
+  end
+
+  describe "#resolve_headers", :swagger_object do
+    context "with consumes set" do
+      let(:swagger_data) { {consumes: ['application/json']} }
+
+      it "sets the Content-Type header" do
+        expect(resolve_headers(swagger_data)).to include('CONTENT_TYPE' => 'application/json')
+      end
+    end
+
+    context "with produces set" do
+      let(:swagger_data) { {produces: ['application/xml']} }
+
+      it "sets the Accepts header" do
+        expect(resolve_headers(swagger_data)).to include('HTTP_ACCEPT' => 'application/xml')
+      end
+    end
+
+    xit "includes paramters" do
+
     end
   end
 end
