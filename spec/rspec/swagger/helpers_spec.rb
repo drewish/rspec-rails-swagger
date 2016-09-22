@@ -197,24 +197,39 @@ RSpec.describe RSpec::Swagger::Helpers::Resolver do
   end
 
   describe "#resolve_path", :swagger_object do
+    let(:metadata) do
+      {
+        swagger_document: 'example.json',
+        swagger_path_item: {path: template},
+      }
+    end
+    let(:document) { { } }
+
+    before { expect(self).to receive(:resolve_document) { document } }
+
     describe "with a missing value" do
+      let(:template) { '/sites/{site_id}' }
       it "raises an error" do
-        expect{ resolve_path('/sites/{site_id}', self) }.to raise_exception(NoMethodError)
+        expect{ resolve_path(metadata, self) }.to raise_exception(NoMethodError)
       end
     end
 
     describe "with values" do
+      let(:template) { '/sites/{site_id}/accounts/{accountId}' }
       let(:site_id) { 1001 }
       let(:accountId) { "pickles" }
 
       it "substitutes them into the path" do
-        expect(resolve_path('/sites/{site_id}/accounts/{accountId}', self)).to eq('/sites/1001/accounts/pickles')
+        expect(resolve_path(metadata, self)).to eq('/sites/1001/accounts/pickles')
       end
     end
 
     describe "with a base path" do
-      xit "prefixes the path" do
+      let(:document) { { basePath: '/base' } }
+      let(:template) { '/sites/' }
 
+      it "prefixes the path" do
+        expect(resolve_path(metadata, self)).to eq('/base/sites/')
       end
     end
   end

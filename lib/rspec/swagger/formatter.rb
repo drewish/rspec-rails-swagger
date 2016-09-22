@@ -5,10 +5,6 @@ module RSpec
     class Formatter < RSpec::Core::Formatters::BaseTextFormatter
       RSpec::Core::Formatters.register self, :example_finished, :close
 
-      def initialize(output)
-        super
-      end
-
       def documents
         # We don't try to load the docs in `initalize` because when running
         # `rspec -f RSpec::Swagger::Formatter` RSpec initalized this class
@@ -17,13 +13,13 @@ module RSpec
       end
 
       def example_finished(notification)
-        return unless notification.example.metadata[:swagger_object] == :response
+        metadata  = notification.example.metadata
+        return unless metadata[:swagger_object] == :response
 
-        notification.example.metadata.each do |k, v|
+        metadata.each do |k, v|
           puts "#{k}\t#{v}" if k.to_s.starts_with?("swagger")
         end
 
-        metadata  = notification.example.metadata
         document  = document_for(metadata[:swagger_document])
         path_item = path_item_for(document, metadata[:swagger_path_item])
         operation = operation_for(path_item, metadata[:swagger_operation])

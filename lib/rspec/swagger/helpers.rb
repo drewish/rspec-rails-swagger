@@ -73,6 +73,9 @@ module RSpec
           attributes.symbolize_keys!
 
           validate_location! attributes[:in]
+
+          # TODO validate there is only be one body param
+          # TODO validate there are not both body and formData params
           if attributes[:in] == :body
             unless attributes[:schema].present?
               raise ArgumentError, "Parameter is missing required 'schema' value."
@@ -94,7 +97,7 @@ module RSpec
           params = object_data[:parameters] ||= {}
           param = { name: name.to_s }.merge(attributes)
 
-          # Params should be unique based on the 'name' and 'in' values.
+          # This key ensures uniqueness based on the 'name' and 'in' values.
           param_key = "#{param[:in]}&#{param[:name]}"
           params[param_key] = param
         end
@@ -148,7 +151,7 @@ module RSpec
 
             before do |example|
               method = example.metadata[:swagger_operation][:method]
-              path = resolve_path(example.metadata[:swagger_path_item][:path], self)
+              path = resolve_path(example.metadata, self)
               headers = resolve_headers(example.metadata)
 
               # Run the request
@@ -193,7 +196,12 @@ module RSpec
       end
 
       module Resolver
-        def resolve_prodces metadata
+        def resolve_document metadata
+          name = metadata[:swagger_document]
+          Document.new(RSpec.configuration.swagger_docs[name])
+        end
+
+        def resolve_produces metadata
           metadata[:swagger_operation][:produces]
         end
 
@@ -204,7 +212,7 @@ module RSpec
         def resolve_headers metadata
           headers = {}
           # Match the names that Rails uses internally
-          if produces = resolve_prodces(metadata)
+          if produces = resolve_produces(metadata)
             headers['HTTP_ACCEPT'] = produces.join(';')
           end
           if consumes = resolve_consumes(metadata)
@@ -219,17 +227,22 @@ module RSpec
           params = path_item.fetch(:parameters, {}).merge(operation.fetch(:parameters, {}))
 
           # TODO resolve $refs
-          # TODO there should only be one body param
-          # TODO there should not be both body and formData params
           params.values.map do |p|
             p.slice(:name, :in).merge(value: group_instance.send(p[:name]))
           end
         end
 
-        def resolve_path template, group_instance
-          # Should check that the parameter is actually defined before trying
-          # fetch a value?
-          template.gsub(/(\{.*?\})/){|match| group_instance.send(match[1...-1]) }
+        def resolve_path metadata, group_instance
+          document = resolve_document metadata
+          base_path = document[:basePath] || ''
+          # Find params in the path and replace them with values defined in
+          # in the example group.
+          path = metadata[:swagger_path_item][:path].gsub(/(\{.*?\})/) do |match|
+            # QUESTION: Should check that the parameter is actually defined in
+            # `metadata[:swagger_*][:parameters]` before fetch a value?
+            group_instance.send(match[1...-1])
+          end
+          base_path + path
         end
       end
     end
