@@ -83,6 +83,7 @@ RSpec.describe RSpec::Swagger::Helpers::Parameters do
     Class.new do
       include RSpec::Swagger::Helpers::Parameters
       attr_accessor :metadata
+      def describe *args ; end
     end
   end
   subject { klass.new }
@@ -142,6 +143,7 @@ RSpec.describe RSpec::Swagger::Helpers::Operation do
     Class.new do
       include RSpec::Swagger::Helpers::Operation
       attr_accessor :metadata
+      def describe *args ; end
     end
   end
   subject { klass.new }
@@ -150,15 +152,19 @@ RSpec.describe RSpec::Swagger::Helpers::Operation do
     before { subject.metadata = {swagger_object: :operation} }
 
     it "requires code be an integer 100...600 or :default" do
-      expect{ subject.response 1, "description" }.to raise_exception(ArgumentError)
-      expect{ subject.response 99, "description" }.to raise_exception(ArgumentError)
-      expect{ subject.response 600, "description" }.to raise_exception(ArgumentError)
-      expect{ subject.response '404', "description" }.to raise_exception(ArgumentError)
-      expect{ subject.response 'default', "description" }.to raise_exception(ArgumentError)
+      expect{ subject.response 99, description: "too low" }.to raise_exception(ArgumentError)
+      expect{ subject.response 600, description: "too high" }.to raise_exception(ArgumentError)
+      expect{ subject.response '404', description: "string" }.to raise_exception(ArgumentError)
+      expect{ subject.response 'default', description: "string" }.to raise_exception(ArgumentError)
 
-      # expect{ subject.response 100, "description" }.not_to raise_exception
-      # expect{ subject.response 599, "description" }.not_to raise_exception
-      # expect{ subject.response :default, "description" }.not_to raise_exception
+      expect{ subject.response 100, description: "low" }.not_to raise_exception
+      expect{ subject.response 599, description: "high" }.not_to raise_exception
+      expect{ subject.response :default, description: "symbol" }.not_to raise_exception
+    end
+
+    it "requires a description" do
+      expect{ subject.response 100 }.to raise_exception(ArgumentError)
+      expect{ subject.response 100, description: "low" }.not_to raise_exception
     end
   end
 end

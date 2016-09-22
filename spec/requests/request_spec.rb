@@ -1,12 +1,18 @@
 require 'swagger_helper'
 
 RSpec.describe "Requestsing", type: :request do
+  # path "/ping" do
+  #   operation :put do
+  #     response(200, {description: 'OK'})
+  #     puts "in here"
+  #   end
+  # end
+
   path '/posts' do
     operation "GET", summary:"fetch list" do
       produces 'application/json'
 
-      # params
-      response(200, "successful", {})
+      response(200, {description: "successful"}, {})
     end
 
     operation "POST",summary: "create" do
@@ -17,7 +23,7 @@ RSpec.describe "Requestsing", type: :request do
       let(:body) { { post: { title: 'asdf', body: "blah" } } }
 
 # TODO: it should pull the body from the params
-      response(201, "successfully created", { post: { title: 'asdf', body: "blah" } }.to_json) do
+      response(201, {description: "successfully created"}, { post: { title: 'asdf', body: "blah" } }.to_json) do
         it "uses the body we passed in" do
           post = JSON.parse(response.body)
           expect(post["title"]).to eq('asdf')
@@ -37,7 +43,7 @@ RSpec.describe "Requestsing", type: :request do
 
       before { Post.new.save }
       parameter "op-param", {in: :query, type: :string}
-      response(200, "success", {}) do
+      response(200, {description: "success"}, {}) do
         capture_example
       end
     end

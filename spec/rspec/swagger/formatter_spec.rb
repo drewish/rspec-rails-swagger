@@ -27,13 +27,9 @@ RSpec.describe RSpec::Swagger::Formatter do
       let(:metadata) do
         {
           swagger_object: :response,
-          swagger_data: {
-            path: "/ping",
-            operation: :put,
-            status_code: 200,
-            response_description: 'OK',
-            example: nil
-          }
+          swagger_path_item: {path: "/ping"},
+          swagger_operation: {method: :put},
+          swagger_response:  {status_code: 200, description: "OK"},
         }
       end
 
@@ -55,12 +51,10 @@ RSpec.describe RSpec::Swagger::Formatter do
       let(:metadata) do
         {
           swagger_object: :response,
-          swagger_data: {
-            document: 'doc2.json',
-            path: "/ping",
-            operation: :put,
-            status_code: 200
-          }
+          swagger_document: 'doc2.json',
+          swagger_path_item: {path: "/ping"},
+          swagger_operation: {method: :put},
+          swagger_response:  {status_code: 200, description: "OK"},
         }
       end
 
@@ -88,7 +82,9 @@ RSpec.describe RSpec::Swagger::Formatter do
       let(:metadata) do
         {
           swagger_object: :response,
-          swagger_data: {path: '/ping', operation: :get, status_code: 200, response_description: 'all good' }
+          swagger_path_item: {path: "/ping"},
+          swagger_operation: {method: :get},
+          swagger_response:  {status_code: 200, description: 'all good'},
         }
       end
 

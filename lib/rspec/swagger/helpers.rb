@@ -33,7 +33,7 @@ module RSpec
         config.extend Parameters,  swagger_object: :path_item
         config.extend Operation,   swagger_object: :operation
         config.extend Parameters,  swagger_object: :operation
-        config.extend Response,    swagger_object: :status_code
+        config.extend Response,    swagger_object: :response
         config.include Resolver,   :swagger_object
       end
 
@@ -72,26 +72,13 @@ module RSpec
         def parameter name, attributes = {}
           attributes.symbolize_keys!
 
-          raise ArgumentError, "Parameter is missing required 'in' value." unless attributes[:in]
-          locations = [:query, :header, :path, :formData, :body]
-
-          unless locations.include? attributes[:in]
-            raise ArgumentError, "Parameter has an invalid 'in' value. Try: #{locations}."
-          end
-
+          validate_location! attributes[:in]
           if attributes[:in] == :body
             unless attributes[:schema].present?
               raise ArgumentError, "Parameter is missing required 'schema' value."
             end
           else
-            unless attributes[:type].present?
-              raise ArgumentError, "Parameter is missing required 'type' value."
-            end
-
-            types = %i(string number integer boolean array file)
-            unless types.include?(attributes[:type])
-              raise ArgumentError, "Parameter has an invalid 'type' value. Try: #{types}."
-            end
+            validate_type! attributes[:type]
           end
 
           # Path attributes are always required
@@ -111,6 +98,30 @@ module RSpec
           param_key = "#{param[:in]}&#{param[:name]}"
           params[param_key] = param
         end
+
+        private
+
+        def validate_location! location
+          unless location.present?
+            raise ArgumentError, "Parameter is missing required 'in' value."
+          end
+
+          locations = %i(query header path formData body)
+          unless locations.include? location
+            raise ArgumentError, "Parameter has an invalid 'in' value. Try: #{locations}."
+          end
+        end
+
+        def validate_type! type
+          unless type.present?
+            raise ArgumentError, "Parameter is missing required 'type' value."
+          end
+
+          types = %i(string number integer boolean array file)
+          unless types.include?(type)
+            raise ArgumentError, "Parameter has an invalid 'type' value. Try: #{types}."
+          end
+        end
       end
 
       module Operation
@@ -122,13 +133,15 @@ module RSpec
           metadata[:swagger_operation][:produces] = mime_types
         end
 
-        def response status_code, desc, params = {}, &block
-          unless status_code == :default || (100..599).cover?(status_code)
-            raise ArgumentError, "status_code must be an integer 100 to 599, or :default"
-          end
+        def response status_code, attributes = {}, params = {}, &block
+          attributes.symbolize_keys!
+
+          validate_status_code! status_code
+          validate_description! attributes[:description]
+
           meta = {
-            swagger_object: :status_code,
-            swagger_response: {status_code: status_code, description: desc}
+            swagger_object: :response,
+            swagger_response: attributes.merge(status_code: status_code)
           }
           describe(status_code, meta) do
             self.module_exec(&block) if block_given?
@@ -152,9 +165,23 @@ module RSpec
               end
             end
 
-            it("returns the correct status code", { swagger_object: :response }) do
+            it("returns the correct status code") do
               expect(response).to have_http_status(status_code)
             end
+          end
+        end
+
+        private
+
+        def validate_status_code! status_code
+          unless status_code == :default || (100..599).cover?(status_code)
+            raise ArgumentError, "status_code must be an integer 100 to 599, or :default"
+          end
+        end
+
+        def validate_description! description
+          unless description.present?
+            raise ArgumentError, "Response is missing required 'description' value."
           end
         end
       end
