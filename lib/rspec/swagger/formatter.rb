@@ -16,9 +16,9 @@ module RSpec
         metadata  = notification.example.metadata
         return unless metadata[:swagger_object] == :response
 
-        metadata.each do |k, v|
-          puts "#{k}\t#{v}" if k.to_s.starts_with?("swagger")
-        end
+        # metadata.each do |k, v|
+        #   puts "#{k}\t#{v}" if k.to_s.starts_with?("swagger")
+        # end
 
         document  = document_for(metadata[:swagger_document])
         path_item = path_item_for(document, metadata[:swagger_path_item])
@@ -31,7 +31,12 @@ module RSpec
       end
 
       def write_json(name, document)
-        puts JSON.pretty_generate(document)
+        root = ::RSpec.configuration.swagger_root
+        # It would be good to at least warn if the name includes some '../' that
+        # takes it out of root directory.
+        target = Pathname(name).expand_path(root)
+        target.dirname.mkpath
+        target.write(JSON.pretty_generate(document))
       end
 
       def document_for(doc_name = nil)

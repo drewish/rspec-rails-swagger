@@ -197,6 +197,8 @@ module RSpec
 
       module Resolver
         def resolve_document metadata
+          # TODO: It's really inefficient to keep recreating this. It'd be nice
+          # if we could cache them some place.
           name = metadata[:swagger_document]
           Document.new(RSpec.configuration.swagger_docs[name])
         end
