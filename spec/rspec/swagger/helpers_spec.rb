@@ -84,6 +84,7 @@ RSpec.describe RSpec::Swagger::Helpers::Parameters do
       include RSpec::Swagger::Helpers::Parameters
       attr_accessor :metadata
       def describe *args ; end
+      def resolve_document *args ; end
     end
   end
   subject { klass.new }
@@ -91,48 +92,66 @@ RSpec.describe RSpec::Swagger::Helpers::Parameters do
   describe "#parameter" do
     before { subject.metadata = {swagger_object: :path_item} }
 
-    it "requires 'in' parameter" do
-      expect{ subject.parameter("name", foo: :bar) }.to raise_exception(ArgumentError)
-    end
-
-    it "validates 'in' parameter" do
-      expect{ subject.parameter("name", in: :form_data, type: :string) }.to raise_exception(ArgumentError)
-      expect{ subject.parameter("name", in: "formData", type: :string) }.to raise_exception(ArgumentError)
-      expect{ subject.parameter("name", in: :formData, type: :string) }.not_to raise_exception
-    end
-
-    it "requies a schema for body params" do
-      expect{ subject.parameter(:name, in: :body) }.to raise_exception(ArgumentError)
-      expect{ subject.parameter(:name, in: :body, schema: {ref: '#/definitions/foo'}) }.not_to raise_exception
-    end
-
-    it "requires a type for non-body params" do
-      expect{ subject.parameter(:name, in: :path) }.to raise_exception(ArgumentError)
-      expect{ subject.parameter(:name, in: :path, type: :number) }.not_to raise_exception
-    end
-
-    it "validates types" do
-      %i(string number integer boolean array file).each do |type|
-        expect{ subject.parameter(:name, in: :path, type: type) }.not_to raise_exception
+    context "with parameters passed in" do
+      it "requires 'in' parameter" do
+        expect{ subject.parameter("name", foo: :bar) }.to raise_exception(ArgumentError)
       end
-      [100, :pickles, "stuff"].each do |type|
-        expect{ subject.parameter(:name, in: :path, type: type) }.to raise_exception(ArgumentError)
+
+      it "validates 'in' parameter" do
+        expect{ subject.parameter("name", in: :form_data, type: :string) }.to raise_exception(ArgumentError)
+        expect{ subject.parameter("name", in: :pickles, type: :string) }.to raise_exception(ArgumentError)
+
+        expect{ subject.parameter("name", in: :formData, type: :string) }.not_to raise_exception
+      end
+
+      it "requies a schema for body params" do
+        expect{ subject.parameter(:name, in: :body) }.to raise_exception(ArgumentError)
+        expect{ subject.parameter(:name, in: :body, schema: {ref: '#/definitions/foo'}) }.not_to raise_exception
+      end
+
+      it "requires a type for non-body params" do
+        expect{ subject.parameter(:name, in: :path) }.to raise_exception(ArgumentError)
+        expect{ subject.parameter(:name, in: :path, type: :number) }.not_to raise_exception
+      end
+
+      it "validates types" do
+        %i(string number integer boolean array file).each do |type|
+          expect{ subject.parameter(:name, in: :path, type: type) }.not_to raise_exception
+        end
+        [100, :pickles, "stuff"].each do |type|
+          expect{ subject.parameter(:name, in: :path, type: type) }.to raise_exception(ArgumentError)
+        end
+      end
+
+      it "marks path parameters as required" do
+        subject.parameter("name", in: :path, type: :boolean)
+
+        expect(subject.metadata[:swagger_path_item][:parameters].values.first).to include(required: true)
+      end
+
+      it "keeps parameters unique by name and location" do
+        subject.parameter('foo', in: :path, type: :integer)
+        subject.parameter('foo', in: :path, type: :integer)
+        subject.parameter('bar', in: :query, type: :integer)
+        subject.parameter('baz', in: :query, type: :integer)
+
+        expect(subject.metadata[:swagger_path_item][:parameters].length).to eq 3
       end
     end
 
-    it "marks path parameters as required" do
-      subject.parameter("name", in: :path, type: :boolean)
+    context "with references" do
+      it "stores them" do
+        expect(subject).to receive(:resolve_document) do
+          double(resolve_ref: {in: 'path', name: 'petId', description: 'ID of pet',
+            required: true, type: 'string'})
+        end
 
-      expect(subject.metadata[:swagger_path_item][:parameters].values.first).to include(required: true)
-    end
+        subject.parameter(ref: '#/parameters/Pet')
 
-    it "keeps parameters unique by name and location" do
-      subject.parameter('foo', in: :path, type: :integer)
-      subject.parameter('foo', in: :path, type: :integer)
-      subject.parameter('bar', in: :query, type: :integer)
-      subject.parameter('baz', in: :query, type: :integer)
-
-      expect(subject.metadata[:swagger_path_item][:parameters].length).to eq 3
+        expect(subject.metadata[:swagger_path_item][:parameters]).to eq({
+          'path&petId' => {'$ref' => '#/parameters/Pet'}
+        })
+      end
     end
   end
 end
@@ -174,7 +193,15 @@ RSpec.describe RSpec::Swagger::Helpers::Resolver do
   # Tthis helper is an include rather than an extend we can get it pulled into
   # the test just by matching the filter metadata.
   describe("#resolve_params", :swagger_object) do
-    let(:metadata) { {swagger_operation: {parameters: params}} }
+    let(:metadata) do
+      {
+        swagger_document: 'example.json',
+        swagger_operation: {parameters: params}
+      }
+    end
+    let(:document) { { } }
+
+    before { allow(self).to receive(:resolve_document) { document } }
 
     describe "with a missing value" do
       let(:params) { {"path&post_id" => {name: "post_id", in: :path}} }
@@ -192,6 +219,18 @@ RSpec.describe RSpec::Swagger::Helpers::Resolver do
 
       it "returns it" do
         expect(resolve_params(metadata, self)).to eq([{name: "post_id", in: :path, value: 123}])
+      end
+    end
+
+    describe "with a $ref" do
+      let(:document) do
+        { parameters: { skipParam: {name: "skipper", in: "path", required: true, type: "integer"} } }
+      end
+      let(:params) { {"path&skipper" => { '$ref' => '#/parameters/skipParam'}} }
+      let(:skipper) { true }
+
+      it "uses the parameters in the document" do
+        expect(resolve_params(metadata, self)).to eq([{name: "skipper", in: :path, value: true}])
       end
     end
   end

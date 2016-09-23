@@ -72,45 +72,59 @@ module RSpec
         def parameter name, attributes = {}
           attributes.symbolize_keys!
 
+          # look for $refs
+          if name.respond_to?(:has_key?)
+            ref = name.delete(:ref) || name.delete('ref')
+            full_param = resolve_document(metadata).resolve_ref(ref)
+
+            validate_parameter! full_param
+
+            param = { '$ref' => ref }
+            key = parameter_key(full_param)
+          else
+            validate_parameter! attributes
+
+            # Path attributes are always required
+            attributes[:required] = true if attributes[:in] == :path
+
+            param = { name: name.to_s }.merge(attributes)
+            key = parameter_key(param)
+          end
+
+          parameters_for_object[key] = param
+        end
+        private
+
+        # This key ensures uniqueness based on the 'name' and 'in' values.
+        def parameter_key parameter
+          "#{parameter[:in]}&#{parameter[:name]}"
+        end
+
+        def parameters_for_object
+          object_key = "swagger_#{metadata[:swagger_object]}".to_sym
+          object_data = metadata[object_key] ||= {}
+          object_data[:parameters] ||= {}
+        end
+
+        def validate_parameter! attributes
           validate_location! attributes[:in]
 
-          # TODO validate there is only be one body param
-          # TODO validate there are not both body and formData params
-          if attributes[:in] == :body
+          if attributes[:in].to_s == 'body'
             unless attributes[:schema].present?
               raise ArgumentError, "Parameter is missing required 'schema' value."
             end
           else
             validate_type! attributes[:type]
           end
-
-          # Path attributes are always required
-          attributes[:required] = true if attributes[:in] == :path
-
-          # if name.respond_to?(:has_key?)
-          #   param = { '$ref' => name.delete(:ref) || name.delete('ref') }
-          # end
-
-          object_key = "swagger_#{metadata[:swagger_object]}".to_sym
-          object_data = metadata[object_key] ||= {}
-
-          params = object_data[:parameters] ||= {}
-          param = { name: name.to_s }.merge(attributes)
-
-          # This key ensures uniqueness based on the 'name' and 'in' values.
-          param_key = "#{param[:in]}&#{param[:name]}"
-          params[param_key] = param
         end
-
-        private
 
         def validate_location! location
           unless location.present?
             raise ArgumentError, "Parameter is missing required 'in' value."
           end
 
-          locations = %i(query header path formData body)
-          unless locations.include? location
+          locations = %q(query header path formData body)
+          unless locations.include? location.to_s
             raise ArgumentError, "Parameter has an invalid 'in' value. Try: #{locations}."
           end
         end
@@ -120,8 +134,8 @@ module RSpec
             raise ArgumentError, "Parameter is missing required 'type' value."
           end
 
-          types = %i(string number integer boolean array file)
-          unless types.include?(type)
+          types = %q(string number integer boolean array file)
+          unless types.include? type.to_s
             raise ArgumentError, "Parameter has an invalid 'type' value. Try: #{types}."
           end
         end
@@ -230,9 +244,9 @@ module RSpec
           operation = metadata[:swagger_operation] || {}
           params = path_item.fetch(:parameters, {}).merge(operation.fetch(:parameters, {}))
 
-          # TODO resolve $refs
-          params.values.map do |p|
-            p.slice(:name, :in).merge(value: group_instance.send(p[:name]))
+          params.keys.map do |key|
+            location, name = key.split('&')
+            {name: name, in: location.to_sym, value: group_instance.send(name)}
           end
         end
 
