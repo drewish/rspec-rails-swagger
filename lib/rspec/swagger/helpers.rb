@@ -204,11 +204,13 @@ module RSpec
         end
 
         def resolve_produces metadata
-          metadata[:swagger_operation][:produces]
+          document = resolve_document metadata
+          metadata[:swagger_operation][:produces] || document[:produces]
         end
 
         def resolve_consumes metadata
-          metadata[:swagger_operation][:consumes]
+          document = resolve_document metadata
+          metadata[:swagger_operation][:consumes] || document[:consumes]
         end
 
         def resolve_headers metadata

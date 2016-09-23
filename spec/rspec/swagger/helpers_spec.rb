@@ -235,19 +235,38 @@ RSpec.describe RSpec::Swagger::Helpers::Resolver do
   end
 
   describe "#resolve_headers", :swagger_object do
-    context "with consumes set" do
-      let(:metadata) { {swagger_operation: {consumes: ['application/json']}} }
+    context "with consumes/produces in the operation" do
+      let(:metadata) do
+        {swagger_operation: {consumes: ['application/json'], produces: ['application/xml']}}
+      end
+      before do
+        allow(self).to receive(:resolve_document) { {} }
+      end
 
       it "sets the Content-Type header" do
         expect(resolve_headers(metadata)).to include('CONTENT_TYPE' => 'application/json')
       end
-    end
-
-    context "with produces set" do
-      let(:metadata) { {swagger_operation: {produces: ['application/xml']}} }
 
       it "sets the Accepts header" do
         expect(resolve_headers(metadata)).to include('HTTP_ACCEPT' => 'application/xml')
+      end
+    end
+
+    context "with consumes/produces in the document" do
+      let(:metadata) { {swagger_document: 'test.json', swagger_operation: {}} }
+      before do
+        allow(self).to receive(:resolve_document) do
+          { consumes: ['text/plain; charset=utf-8'],
+            produces: ['application/vnd.github.v3.raw+json']}
+        end
+      end
+
+      it "sets the Content-Type header" do
+        expect(resolve_headers(metadata)).to include('CONTENT_TYPE' => 'text/plain; charset=utf-8')
+      end
+
+      it "sets the Accepts header" do
+        expect(resolve_headers(metadata)).to include('HTTP_ACCEPT' => 'application/vnd.github.v3.raw+json')
       end
     end
 
