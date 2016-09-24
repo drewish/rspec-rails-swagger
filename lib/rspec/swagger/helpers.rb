@@ -34,7 +34,6 @@ module RSpec
         config.extend Operation,   swagger_object: :operation
         config.extend Parameters,  swagger_object: :operation
         config.extend Response,    swagger_object: :response
-        config.include Resolver,   :swagger_object
       end
 
       module Paths
@@ -93,6 +92,14 @@ module RSpec
 
           parameters_for_object[key] = param
         end
+
+        def resolve_document metadata
+          # TODO: It's really inefficient to keep recreating this. It'd be nice
+          # if we could cache them some place.
+          name = metadata[:swagger_document]
+          Document.new(RSpec.configuration.swagger_docs[name])
+        end
+
         private
 
         # This key ensures uniqueness based on the 'name' and 'in' values.
@@ -163,18 +170,20 @@ module RSpec
           describe(status_code, meta) do
             self.module_exec(&block) if block_given?
 
+            # TODO: describe the wacky ness to get the metadata and access to let() defined values...
             before do |example|
-              method = example.metadata[:swagger_operation][:method]
-              path = resolve_path(example.metadata, self)
-              headers = resolve_headers(example.metadata)
+              builder = RequestBuilder.new(example.metadata, self)
+              method = builder.method
+              path = builder.path + builder.query
+              headers = builder.headers
+              params = resolve_params(example.metadata, self)
 
               # Run the request
-              args = if ::Rails::VERSION::MAJOR >= 5
-                [path, {params: params, headers: headers}]
+              if ::Rails::VERSION::MAJOR >= 5
+                self.send(method, path, {params: params, headers: headers})
               else
-                [path, params, headers]
+                self.send(method, path, params, headers)
               end
-              self.send(method, *args)
 
               if example.metadata[:capture_example]
                 examples = example.metadata[:swagger_response][:examples] ||= {}
@@ -206,61 +215,6 @@ module RSpec
       module Response
         def capture_example
           metadata[:capture_example] = true
-        end
-      end
-
-      module Resolver
-        def resolve_document metadata
-          # TODO: It's really inefficient to keep recreating this. It'd be nice
-          # if we could cache them some place.
-          name = metadata[:swagger_document]
-          Document.new(RSpec.configuration.swagger_docs[name])
-        end
-
-        def resolve_produces metadata
-          document = resolve_document metadata
-          metadata[:swagger_operation][:produces] || document[:produces]
-        end
-
-        def resolve_consumes metadata
-          document = resolve_document metadata
-          metadata[:swagger_operation][:consumes] || document[:consumes]
-        end
-
-        def resolve_headers metadata
-          headers = {}
-          # Match the names that Rails uses internally
-          if produces = resolve_produces(metadata)
-            headers['HTTP_ACCEPT'] = produces.join(';')
-          end
-          if consumes = resolve_consumes(metadata)
-            headers['CONTENT_TYPE'] = consumes.first
-          end
-          headers
-        end
-
-        def resolve_params metadata, group_instance
-          path_item = metadata[:swagger_path_item] || {}
-          operation = metadata[:swagger_operation] || {}
-          params = path_item.fetch(:parameters, {}).merge(operation.fetch(:parameters, {}))
-
-          params.keys.map do |key|
-            location, name = key.split('&')
-            {name: name, in: location.to_sym, value: group_instance.send(name)}
-          end
-        end
-
-        def resolve_path metadata, group_instance
-          document = resolve_document metadata
-          base_path = document[:basePath] || ''
-          # Find params in the path and replace them with values defined in
-          # in the example group.
-          path = metadata[:swagger_path_item][:path].gsub(/(\{.*?\})/) do |match|
-            # QUESTION: Should check that the parameter is actually defined in
-            # `metadata[:swagger_*][:parameters]` before fetch a value?
-            group_instance.send(match[1...-1])
-          end
-          base_path + path
         end
       end
     end
