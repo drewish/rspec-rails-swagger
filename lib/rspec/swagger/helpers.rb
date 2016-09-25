@@ -174,15 +174,15 @@ module RSpec
             before do |example|
               builder = RequestBuilder.new(example.metadata, self)
               method = builder.method
-              path = builder.path + builder.query
+              path = [builder.path, builder.query].join
               headers = builder.headers
-              params = resolve_params(example.metadata, self)
+              body = builder.body
 
               # Run the request
               if ::Rails::VERSION::MAJOR >= 5
-                self.send(method, path, {params: params, headers: headers})
+                self.send(method, path, {params: body, headers: headers})
               else
-                self.send(method, path, params, headers)
+                self.send(method, path, body, headers)
               end
 
               if example.metadata[:capture_example]

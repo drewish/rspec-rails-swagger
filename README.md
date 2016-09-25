@@ -6,7 +6,14 @@ The design of this is heavily influenced by the awesome [swagger_rails](https://
 
 - install gem
 - `rails generate rspec:install`
-- create `spec/swagger_helper.rb` ... would be nice to be a generator
+- create `spec/swagger_helper.rb` (I'll try to get a generator to automate this)
+- define your tests (I definitely need to make this step more explicit)
+
+## Generate the docs
+
+```
+bundle exec rspec -f RSpec::Swagger::Formatter --order defined -t swagger_object
+```
 
 
 ## Running tests

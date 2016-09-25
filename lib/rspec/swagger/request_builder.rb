@@ -49,22 +49,24 @@ module RSpec
         # in the example group.
         path = base_path + metadata[:swagger_path_item][:path].gsub(/(\{.*?\})/) do |match|
           # QUESTION: Should check that the parameter is actually defined in
-          # `metadata[:swagger_*][:parameters]` before fetch a value?
+          # `parameters` before fetch a value?
           instance.send(match[1...-1])
         end
       end
 
       def query
-        # Don't bother with the parameter bodies since all we need is location
-        # and name which make up the key.
-        query_params = parameters.keys
-          .map{ |k| k.split('&')}
+        # Don't bother looking at the full parameter bodies since all we need
+        # are location and name which are the key.
+        query_params = parameters.keys.map{ |k| k.split('&')}
           .select{ |location, name| location == 'query' }
           .map{ |location, name| [name, instance.send(name)] }
+
         '?' + Hash[query_params].to_query unless query_params.empty?
       end
 
       def body
+        # And here all we need is the first half of the key to find the body
+        # parameter and its name to fetch a value.
         if key = parameters.keys.find{ |k| k.starts_with? 'body&' }
           instance.send(key.split('&').last).to_json
         end

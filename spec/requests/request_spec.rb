@@ -42,7 +42,6 @@ RSpec.describe "Requestsing", type: :request do
       produces 'application/json'
 
       before { Post.new.save }
-      parameter "op-param", {in: :query, type: :string}
       response(200, {description: "success"}, {}) do
         capture_example
       end
