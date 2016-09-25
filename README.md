@@ -1,5 +1,7 @@
 # RSpec Swagger
 
+[![Build Status](https://travis-ci.org/drewish/rspec-swagger.svg?branch=master)](https://travis-ci.org/drewish/rspec-swagger)
+
 The design of this is heavily influenced by the awesome [swagger_rails](https://github.com/domaindrivendev/swagger_rails) gem.
 
 ## Setup
