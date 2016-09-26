@@ -173,7 +173,7 @@ module RSpec
           metadata[:swagger_operation][:produces] = mime_types
         end
 
-        def response status_code, attributes = {}, params = {}, &block
+        def response status_code, attributes = {}, &block
           attributes.symbolize_keys!
 
           validate_status_code! status_code

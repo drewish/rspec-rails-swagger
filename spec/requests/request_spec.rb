@@ -12,7 +12,7 @@ RSpec.describe "Requestsing", type: :request do
     operation "GET", summary:"fetch list" do
       produces 'application/json'
 
-      response(200, {description: "successful"}, {})
+      response(200, {description: "successful"})
     end
 
     post summary: "create" do
@@ -22,8 +22,7 @@ RSpec.describe "Requestsing", type: :request do
       parameter "body", in: :body, schema: { foo: :bar}
       let(:body) { { post: { title: 'asdf', body: "blah" } } }
 
-# TODO: it should pull the body from the params
-      response(201, {description: "successfully created"}, { post: { title: 'asdf', body: "blah" } }.to_json) do
+      response(201, {description: "successfully created"}) do
         it "uses the body we passed in" do
           post = JSON.parse(response.body)
           expect(post["title"]).to eq('asdf')
@@ -42,7 +41,7 @@ RSpec.describe "Requestsing", type: :request do
       produces 'application/json'
 
       before { Post.new.save }
-      response(200, {description: "success"}, {}) do
+      response(200, {description: "success"}) do
         capture_example
       end
     end

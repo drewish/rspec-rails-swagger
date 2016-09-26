@@ -186,7 +186,7 @@ RSpec.describe RSpec::Swagger::Helpers::Operation do
   end
   subject { klass.new }
 
-  describe "#response" do
+  describe '#response' do
     before { subject.metadata = {swagger_object: :operation} }
 
     it "requires code be an integer 100...600 or :default" do
@@ -203,6 +203,26 @@ RSpec.describe RSpec::Swagger::Helpers::Operation do
     it "requires a description" do
       expect{ subject.response 100 }.to raise_exception(ArgumentError)
       expect{ subject.response 100, description: "low" }.not_to raise_exception
+    end
+  end
+end
+
+RSpec.describe RSpec::Swagger::Helpers::Response do
+  let(:klass) do
+    Class.new do
+      include RSpec::Swagger::Helpers::Response
+      attr_accessor :metadata
+      def describe *args ; end
+    end
+  end
+  subject { klass.new }
+
+  before { subject.metadata = {swagger_object: :response} }
+
+  describe '#capture_example' do
+    it "sets the capture metadata" do
+      expect{ subject.capture_example }
+        .to change{ subject.metadata[:capture_examples] }.to(true)
     end
   end
 end
