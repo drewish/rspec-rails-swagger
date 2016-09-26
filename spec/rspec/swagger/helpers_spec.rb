@@ -48,7 +48,7 @@ RSpec.describe RSpec::Swagger::Helpers::PathItem do
 
   describe "#operation" do
 
-    it "requires only an HTTP verb" do
+    it "requires a verb" do
       expect(subject).to receive(:describe).with('get', {
         swagger_object: :operation,
         swagger_operation: {method: :get}
@@ -57,7 +57,15 @@ RSpec.describe RSpec::Swagger::Helpers::PathItem do
       subject.operation('GET')
     end
 
-    it "accepts other options" do
+    it 'validates the verb' do
+      expect{ subject.operation('foo') }.to raise_exception(ArgumentError)
+      expect{ subject.operation(:foo) }.to raise_exception(ArgumentError)
+
+      expect{ subject.operation(:head) }.not_to raise_exception
+      expect{ subject.operation('patch') }.not_to raise_exception
+    end
+
+    it 'accepts additional options' do
       expect(subject).to receive(:describe).with('head', {
         swagger_object: :operation,
         swagger_operation: {
@@ -74,7 +82,19 @@ RSpec.describe RSpec::Swagger::Helpers::PathItem do
         operationId: 'updatePetWithForm'
       )
     end
+  end
 
+  described_class::METHODS.each do |method|
+    describe "##{method}" do
+      it 'calls #operation' do
+        expect(subject).to receive(:describe).with(method.to_s, {
+          swagger_object: :operation,
+          swagger_operation: { method: method.to_sym }
+        })
+
+        subject.send(method)
+      end
+    end
   end
 end
 

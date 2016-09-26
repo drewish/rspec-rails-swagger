@@ -53,17 +53,33 @@ module RSpec
       end
 
       module PathItem
-        def operation verb, attributes = {}, &block
+        METHODS = %w(get put post delete options head patch).freeze
+
+        def operation method, attributes = {}, &block
           attributes.symbolize_keys!
 
-          # TODO, check verbs against a whitelist
+          method = method.to_s.downcase
+          validate_method! method
 
-          verb = verb.to_s.downcase
           meta = {
             swagger_object: :operation,
-            swagger_operation: attributes.merge(method: verb.to_sym).reject{ |v| v.nil? }
+            swagger_operation: attributes.merge(method: method.to_sym).reject{ |v| v.nil? }
           }
-          describe(verb.to_s, meta, &block)
+          describe(method.to_s, meta, &block)
+        end
+
+        METHODS.each do |method|
+          define_method(method) do |attributes = {}, &block|
+            operation(method, attributes, &block)
+          end
+        end
+
+        private
+
+        def validate_method! method
+          unless METHODS.include? method.to_s
+            raise ArgumentError, "Operation has an invalid 'method' value. Try: #{METHODS}."
+          end
         end
       end
 
@@ -130,7 +146,7 @@ module RSpec
             raise ArgumentError, "Parameter is missing required 'in' value."
           end
 
-          locations = %q(query header path formData body)
+          locations = %w(query header path formData body)
           unless locations.include? location.to_s
             raise ArgumentError, "Parameter has an invalid 'in' value. Try: #{locations}."
           end
@@ -141,7 +157,7 @@ module RSpec
             raise ArgumentError, "Parameter is missing required 'type' value."
           end
 
-          types = %q(string number integer boolean array file)
+          types = %w(string number integer boolean array file)
           unless types.include? type.to_s
             raise ArgumentError, "Parameter has an invalid 'type' value. Try: #{types}."
           end
@@ -170,7 +186,14 @@ module RSpec
           describe(status_code, meta) do
             self.module_exec(&block) if block_given?
 
-            # TODO: describe the wacky ness to get the metadata and access to let() defined values...
+            # To make a request we need:
+            # - the details we've collected in the metadata
+            # - parameter values defined using let()
+            # RSpec tries to limit access to metadata inside of it() / before()
+            # / after() blocks but that scope is the only place you can access
+            # the let() values. The solution the swagger_rails dev came up with
+            # is to use the example.metadata passed into the block with the
+            # block's scope which has access to the let() values.
             before do |example|
               builder = RequestBuilder.new(example.metadata, self)
               method = builder.method
@@ -185,12 +208,14 @@ module RSpec
                 self.send(method, path, body, headers)
               end
 
-              if example.metadata[:capture_example]
+              if example.metadata[:capture_examples]
                 examples = example.metadata[:swagger_response][:examples] ||= {}
                 examples[response.content_type.to_s] = response.body
               end
             end
 
+            # TODO: see if we can get the caller to show up in the error
+            # backtrace for this test.
             it("returns the correct status code") do
               expect(response).to have_http_status(status_code)
             end
@@ -214,7 +239,7 @@ module RSpec
 
       module Response
         def capture_example
-          metadata[:capture_example] = true
+          metadata[:capture_examples] = true
         end
       end
     end

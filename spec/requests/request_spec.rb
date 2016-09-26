@@ -15,7 +15,7 @@ RSpec.describe "Requestsing", type: :request do
       response(200, {description: "successful"}, {})
     end
 
-    operation "POST",summary: "create" do
+    post summary: "create" do
       produces 'application/json'
       consumes 'application/json'
 
@@ -38,7 +38,7 @@ RSpec.describe "Requestsing", type: :request do
     parameter "post_id", {in: :path, type: :integer}
     let(:post_id) { 1 }
 
-    operation "GET", summary: "fetch item" do
+    get summary: "fetch item" do
       produces 'application/json'
 
       before { Post.new.save }
