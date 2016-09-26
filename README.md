@@ -13,17 +13,18 @@ The design of this was heavily influenced by the awesome [swagger_rails gem](htt
 ## Setup
 
 - Add the gem to your Rails app's `Gemfile`:
-```
+```rb
 group :development, :test do
   gem 'rspec-swagger'
 end
 ```
 - If you don't already have a `spec/rails_helper.rb` file run:
-```
+```shell
 rails generate rspec:install
 ```
-- Create `spec/swagger_helper.rb` file (eventually this will become a generator):
-```
+- Create `spec/swagger_helper.rb` file (eventually [this will become a
+generator](https://github.com/drewish/rspec-swagger/issues/3)):
+```rb
 require 'rspec/swagger'
 require 'rails_helper'
 
@@ -54,7 +55,7 @@ end
 
 ## Generate the docs
 
-Eventually this will become a rake task:
+Eventually [this will become a rake task](https://github.com/drewish/rspec-swagger/issues/2):
 ```
 bundle exec rspec -f RSpec::Swagger::Formatter --order defined -t swagger_object
 ```
@@ -62,13 +63,13 @@ bundle exec rspec -f RSpec::Swagger::Formatter --order defined -t swagger_object
 ## Running tests
 
 The `make_site.sh` script will create a test site for a specific version of
-Rails:
+Rails and run the tests:
 ```
 RAILS_VERSION=4.2.0
 ./make_site.sh
 ```
 
-Re-run the tests:
+Once the test site is created you can just re-run the tests:
 ```
 bundle exec rspec
 ```
