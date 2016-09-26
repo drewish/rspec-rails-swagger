@@ -5,7 +5,7 @@ Gem::Specification.new do |s|
   s.name        = 'rspec-swagger'
   s.version     = RSpec::Swagger::Version::STRING
   s.licenses    = ['MIT']
-  s.summary     = "Generate Swagger docs from rspec integration tests"
+  s.summary     = "Generate Swagger docs from RSpec integration tests"
   s.description = "Inspired by swagger_rails"
   s.author      = "andrew morton"
   s.email       = 'drewish@katherinehouse.com'
