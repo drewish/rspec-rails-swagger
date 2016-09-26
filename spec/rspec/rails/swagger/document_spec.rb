@@ -1,6 +1,6 @@
 require 'swagger_helper'
 
-RSpec.describe RSpec::Swagger::Document do
+RSpec.describe RSpec::Rails::Swagger::Document do
   subject { described_class.new(data) }
   let(:data) { minimial_example }
 
@@ -53,10 +53,10 @@ RSpec.describe RSpec::Swagger::Document do
   end
 
   def minimial_example
-    YAML.load_file(File.expand_path('../../../fixtures/files/minimal.yml', __FILE__))
+    YAML.load_file(File.expand_path('../../../../fixtures/files/minimal.yml', __FILE__))
   end
 
   def instagram_example
-    YAML.load_file(File.expand_path('../../../fixtures/files/instagram.yml', __FILE__))
+    YAML.load_file(File.expand_path('../../../../fixtures/files/instagram.yml', __FILE__))
   end
 end

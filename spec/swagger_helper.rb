@@ -1,4 +1,4 @@
-require 'rspec/swagger'
+require 'rspec/rails/swagger'
 require 'rails_helper'
 
 RSpec.configure do |config|

@@ -1,6 +1,6 @@
 require 'swagger_helper'
 
-RSpec.describe RSpec::Swagger::Formatter do
+RSpec.describe RSpec::Rails::Swagger::Formatter do
   let(:output) { StringIO.new }
   let(:formatter) { described_class.new(output) }
   let(:documents) { {'minimal.json' => minimal} }
