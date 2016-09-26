@@ -23,7 +23,7 @@ module RSpec
         document  = document_for(metadata[:swagger_document])
         path_item = path_item_for(document, metadata[:swagger_path_item])
         operation = operation_for(path_item, metadata[:swagger_operation])
-        response  = response_for(operation, metadata[:swagger_response])
+                    response_for(operation, metadata[:swagger_response])
       end
 
       def close(_notification)
@@ -93,7 +93,7 @@ module RSpec
         if examples["application/json"].present?
           begin
             examples["application/json"] = JSON.parse(examples["application/json"])
-          rescue JSON::ParserError => e
+          rescue JSON::ParserError
           end
         end
         examples

@@ -65,7 +65,7 @@ module RSpec
         base_path = document[:basePath] || ''
         # Find params in the path and replace them with values defined in
         # in the example group.
-        path = base_path + metadata[:swagger_path_item][:path].gsub(/(\{.*?\})/) do |match|
+        base_path + metadata[:swagger_path_item][:path].gsub(/(\{.*?\})/) do |match|
           # QUESTION: Should check that the parameter is actually defined in
           # `parameters` before fetch a value?
           instance.send(match[1...-1])
