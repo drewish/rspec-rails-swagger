@@ -2,4 +2,5 @@
 Gemfile.lock
 
 .bundle/
-rspec-swagger-*.gem
+rspec-rails-swagger-*.gem
+spec/testapp/

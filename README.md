@@ -1,4 +1,4 @@
-# RSpec Swagger
+# RSpec Rails Swagger
 
 [![Build Status](https://travis-ci.org/drewish/rspec-rails-swagger.svg?branch=master)](https://travis-ci.org/drewish/rspec-rails-swagger)
 [![Code Climate](https://codeclimate.com/github/drewish/rspec-rails-swagger/badges/gpa.svg)](https://codeclimate.com/github/drewish/rspec-rails-swagger)
@@ -25,7 +25,7 @@ rails generate rspec:install
 - Create `spec/swagger_helper.rb` file (eventually [this will become a
 generator](https://github.com/drewish/rspec-rails-swagger/issues/3)):
 ```rb
-require 'rspec/swagger'
+require 'rspec/rails/swagger'
 require 'rails_helper'
 
 RSpec.configure do |config|
@@ -57,7 +57,7 @@ end
 
 Eventually [this will become a rake task](https://github.com/drewish/rspec-rails-swagger/issues/2):
 ```
-bundle exec rspec -f RSpec::Swagger::Formatter --order defined -t swagger_object
+bundle exec rspec -f RSpec::Rails::Swagger::Formatter --order defined -t swagger_object
 ```
 
 ## Running tests
