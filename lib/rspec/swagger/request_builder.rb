@@ -26,10 +26,25 @@ module RSpec
         metadata[:swagger_operation][:consumes] || document[:consumes]
       end
 
-      def parameters
+      def parameters location = nil
         path_item = metadata[:swagger_path_item] || {}
         operation = metadata[:swagger_operation] || {}
-        path_item.fetch(:parameters, {}).merge(operation.fetch(:parameters, {}))
+        params = path_item.fetch(:parameters, {}).merge(operation.fetch(:parameters, {}))
+        if location.present?
+          params.select{ |k, _| k.starts_with? "#{location}&" }
+        else
+          params
+        end
+      end
+
+      def parameter_values location
+        # Don't bother looking at the full parameter bodies since all we need
+        # are location and name which are in the key.
+        values = parameters(location)
+          .keys
+          .map{ |k| k.split('&').last }
+          .map{ |name| [name, instance.send(name)] }
+        Hash[values]
       end
 
       def headers
@@ -39,7 +54,10 @@ module RSpec
         headers['HTTP_ACCEPT'] = produces.join(';') if produces.present?
         headers['CONTENT_TYPE'] = consumes.first if consumes.present?
 
-        # TODO needs to pull in parameters with in: :header set.
+        # TODO: do we need to do some capitalization to match the rack
+        # conventions?
+        parameter_values(:header).each { |k, v| headers[k] = v }
+
         headers
       end
 
@@ -55,19 +73,14 @@ module RSpec
       end
 
       def query
-        # Don't bother looking at the full parameter bodies since all we need
-        # are location and name which are the key.
-        query_params = parameters.keys.map{ |k| k.split('&')}
-          .select{ |location, name| location == 'query' }
-          .map{ |location, name| [name, instance.send(name)] }
-
-        '?' + Hash[query_params].to_query unless query_params.empty?
+        query_params = parameter_values(:query).to_query
+        "?#{query_params}" unless query_params.blank?
       end
 
       def body
         # And here all we need is the first half of the key to find the body
         # parameter and its name to fetch a value.
-        if key = parameters.keys.find{ |k| k.starts_with? 'body&' }
+        if key = parameters(:body).keys.first
           instance.send(key.split('&').last).to_json
         end
       end

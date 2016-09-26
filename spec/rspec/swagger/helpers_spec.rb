@@ -47,7 +47,6 @@ RSpec.describe RSpec::Swagger::Helpers::PathItem do
   subject { klass.new }
 
   describe "#operation" do
-
     it "requires a verb" do
       expect(subject).to receive(:describe).with('get', {
         swagger_object: :operation,

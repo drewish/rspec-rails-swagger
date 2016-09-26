@@ -101,12 +101,14 @@ RSpec.describe RSpec::Swagger::RequestBuilder do
   end
 
   describe '#headers' do
-    subject { described_class.new(double('metadata'), double('instance')) }
+    subject { described_class.new(double('metadata'), instance) }
+    let(:instance) { double('instance') }
     let(:produces) { }
     let(:consumes) { }
     before do
       allow(subject).to receive(:produces) { produces }
       allow(subject).to receive(:consumes) { consumes }
+      allow(subject).to receive(:parameters).with(:header) { {} }
     end
 
     context 'when produces is present' do
@@ -135,7 +137,15 @@ RSpec.describe RSpec::Swagger::RequestBuilder do
       end
     end
 
-    xit "includes parameters with in: :header" do
+    context 'with header params' do
+      it 'returns them in a string' do
+        expect(subject).to receive(:parameters).with(:header) { {
+          'header&X-Magic' => { same: :here }
+        } }
+        expect(instance).to receive('X-Magic'.to_sym) { :pickles }
+
+        expect(subject.headers).to include('X-Magic' => :pickles)
+      end
     end
   end
 
@@ -172,10 +182,7 @@ RSpec.describe RSpec::Swagger::RequestBuilder do
 
     context 'with no query params' do
       it 'returns nil' do
-        expect(subject).to receive(:parameters) { {
-          'path&petId' => { this_is: :ignored },
-          'body&site' => { same: :here }
-        } }
+        expect(subject).to receive(:parameters).with(:query) { {} }
 
         expect(subject.query).to be_nil
       end
@@ -183,8 +190,7 @@ RSpec.describe RSpec::Swagger::RequestBuilder do
 
     context 'with query params' do
       it 'returns them in a string' do
-        expect(subject).to receive(:parameters) { {
-          'path&petId' => { this_is: :ignored },
+        expect(subject).to receive(:parameters).with(:query) { {
           'query&site' => { same: :here }
         } }
         expect(instance).to receive(:site) { :pickles }
@@ -200,10 +206,7 @@ RSpec.describe RSpec::Swagger::RequestBuilder do
 
     context 'with no body param' do
       it 'returns nil' do
-        expect(subject).to receive(:parameters) { {
-          'path&petId' => { this_is: :ignored },
-          'query&site' => { same: :here }
-        } }
+        expect(subject).to receive(:parameters).with(:body) { {} }
 
         expect(subject.body).to be_nil
       end
@@ -211,8 +214,7 @@ RSpec.describe RSpec::Swagger::RequestBuilder do
 
     context 'with a body param' do
       it 'returns a serialized JSON string' do
-        expect(subject).to receive(:parameters) { {
-          'path&petId' => { this_is: :ignored },
+        expect(subject).to receive(:parameters).with(:body) { {
           'body&site' => { same: :here }
         } }
         expect(instance).to receive(:site) { { name: :pickles, team: :cowboys } }
