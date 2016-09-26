@@ -1,7 +1,7 @@
 # RSpec Swagger
 
-[![Build Status](https://travis-ci.org/drewish/rspec-swagger.svg?branch=master)](https://travis-ci.org/drewish/rspec-swagger)
-[![Code Climate](https://codeclimate.com/github/drewish/rspec-swagger/badges/gpa.svg)](https://codeclimate.com/github/drewish/rspec-swagger)
+[![Build Status](https://travis-ci.org/drewish/rspec-rails-swagger.svg?branch=master)](https://travis-ci.org/drewish/rspec-rails-swagger)
+[![Code Climate](https://codeclimate.com/github/drewish/rspec-rails-swagger/badges/gpa.svg)](https://codeclimate.com/github/drewish/rspec-rails-swagger)
 
 This gem helps you generate Swagger docs by using RSpec to document the paths.
 You execute a command to run the tests and generate the `.json` output. Running
@@ -15,7 +15,7 @@ The design of this was heavily influenced by the awesome [swagger_rails gem](htt
 - Add the gem to your Rails app's `Gemfile`:
 ```rb
 group :development, :test do
-  gem 'rspec-swagger'
+  gem 'rspec-rails-swagger'
 end
 ```
 - If you don't already have a `spec/rails_helper.rb` file run:
@@ -23,7 +23,7 @@ end
 rails generate rspec:install
 ```
 - Create `spec/swagger_helper.rb` file (eventually [this will become a
-generator](https://github.com/drewish/rspec-swagger/issues/3)):
+generator](https://github.com/drewish/rspec-rails-swagger/issues/3)):
 ```rb
 require 'rspec/swagger'
 require 'rails_helper'
@@ -55,7 +55,7 @@ end
 
 ## Generate the docs
 
-Eventually [this will become a rake task](https://github.com/drewish/rspec-swagger/issues/2):
+Eventually [this will become a rake task](https://github.com/drewish/rspec-rails-swagger/issues/2):
 ```
 bundle exec rspec -f RSpec::Swagger::Formatter --order defined -t swagger_object
 ```

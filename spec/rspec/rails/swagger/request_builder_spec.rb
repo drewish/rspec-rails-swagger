@@ -1,6 +1,6 @@
 require 'swagger_helper'
 
-RSpec.describe RSpec::Swagger::RequestBuilder do
+RSpec.describe RSpec::Rails::Swagger::RequestBuilder do
   describe '#initialize' do
     it 'stores metadata and instance' do
       metadata = { foo: :bar }

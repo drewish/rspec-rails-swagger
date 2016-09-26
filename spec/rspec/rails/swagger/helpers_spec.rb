@@ -1,9 +1,9 @@
 require 'swagger_helper'
 
-RSpec.describe RSpec::Swagger::Helpers::Paths do
+RSpec.describe RSpec::Rails::Swagger::Helpers::Paths do
   let(:klass) do
     Class.new do
-      include RSpec::Swagger::Helpers::Paths
+      include RSpec::Rails::Swagger::Helpers::Paths
       attr_accessor :metadata
       def describe *args ; end
     end
@@ -36,10 +36,10 @@ RSpec.describe RSpec::Swagger::Helpers::Paths do
   end
 end
 
-RSpec.describe RSpec::Swagger::Helpers::PathItem do
+RSpec.describe RSpec::Rails::Swagger::Helpers::PathItem do
   let(:klass) do
     Class.new do
-      include RSpec::Swagger::Helpers::PathItem
+      include RSpec::Rails::Swagger::Helpers::PathItem
       attr_accessor :metadata
       def describe *args ; end
     end
@@ -97,10 +97,10 @@ RSpec.describe RSpec::Swagger::Helpers::PathItem do
   end
 end
 
-RSpec.describe RSpec::Swagger::Helpers::Parameters do
+RSpec.describe RSpec::Rails::Swagger::Helpers::Parameters do
   let(:klass) do
     Class.new do
-      include RSpec::Swagger::Helpers::Parameters
+      include RSpec::Rails::Swagger::Helpers::Parameters
       attr_accessor :metadata
       def describe *args ; end
       def resolve_document *args ; end
@@ -176,10 +176,10 @@ RSpec.describe RSpec::Swagger::Helpers::Parameters do
 end
 
 
-RSpec.describe RSpec::Swagger::Helpers::Operation do
+RSpec.describe RSpec::Rails::Swagger::Helpers::Operation do
   let(:klass) do
     Class.new do
-      include RSpec::Swagger::Helpers::Operation
+      include RSpec::Rails::Swagger::Helpers::Operation
       attr_accessor :metadata
       def describe *args ; end
     end
@@ -207,10 +207,10 @@ RSpec.describe RSpec::Swagger::Helpers::Operation do
   end
 end
 
-RSpec.describe RSpec::Swagger::Helpers::Response do
+RSpec.describe RSpec::Rails::Swagger::Helpers::Response do
   let(:klass) do
     Class.new do
-      include RSpec::Swagger::Helpers::Response
+      include RSpec::Rails::Swagger::Helpers::Response
       attr_accessor :metadata
       def describe *args ; end
     end
