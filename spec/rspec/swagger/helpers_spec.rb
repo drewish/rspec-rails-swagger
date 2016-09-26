@@ -217,12 +217,30 @@ RSpec.describe RSpec::Swagger::Helpers::Response do
   end
   subject { klass.new }
 
-  before { subject.metadata = {swagger_object: :response} }
+  before { subject.metadata = { swagger_object: :response, swagger_response: {} } }
 
   describe '#capture_example' do
     it "sets the capture metadata" do
       expect{ subject.capture_example }
         .to change{ subject.metadata[:capture_examples] }.to(true)
+    end
+  end
+
+  describe '#schema' do
+    it 'stores the schema' do
+      subject.schema({
+        type: :object, properties: { title: { type: 'string' } }
+      })
+
+      expect(subject.metadata[:swagger_response]).to include(schema: {
+        type: :object, properties: { title: { type: 'string' } }
+      })
+    end
+
+    it 'supports refs' do
+      subject.schema ref: '#/definitions/Pet'
+
+      expect(subject.metadata[:swagger_response]).to include(schema: { '$ref' => '#/definitions/Pet' })
     end
   end
 end

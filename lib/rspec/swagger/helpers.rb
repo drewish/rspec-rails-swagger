@@ -87,7 +87,7 @@ module RSpec
         def parameter name, attributes = {}
           attributes.symbolize_keys!
 
-          # look for $refs
+          # Look for $refs
           if name.respond_to?(:has_key?)
             ref = name.delete(:ref) || name.delete('ref')
             full_param = resolve_document(metadata).resolve_ref(ref)
@@ -240,6 +240,15 @@ module RSpec
       module Response
         def capture_example
           metadata[:capture_examples] = true
+        end
+
+        def schema definition
+          definition.symbolize_keys!
+
+          ref = definition.delete(:ref)
+          schema = ref ? { '$ref' => ref } : definition
+
+          metadata[:swagger_response][:schema] = schema
         end
       end
     end
