@@ -55,9 +55,8 @@ end
 
 ## Generate the docs
 
-Eventually [this will become a rake task](https://github.com/drewish/rspec-rails-swagger/issues/2):
 ```
-bundle exec rspec -f RSpec::Rails::Swagger::Formatter --order defined -t swagger_object
+bundle exec rake swagger
 ```
 
 ## Running tests

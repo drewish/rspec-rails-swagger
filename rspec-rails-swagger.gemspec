@@ -17,6 +17,7 @@ Gem::Specification.new do |s|
     'lib/rspec/rails/swagger/helpers.rb',
     'lib/rspec/rails/swagger/request_builder.rb',
     'lib/rspec/rails/swagger/version.rb',
+    'lib/rspec/rails/swagger/tasks/swagger.rake',
   ]
   s.homepage    = 'https://github.com/drewish/rspec-rails-swagger'
 
