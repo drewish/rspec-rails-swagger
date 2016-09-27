@@ -10,6 +10,14 @@ module RSpec
   module Rails
     module Swagger
       initialize_configuration RSpec.configuration
+
+      if defined?(::Rails)
+        class Railtie < ::Rails::Railtie
+          rake_tasks do
+            load 'rspec/rails/swagger/tasks/swagger.rake'
+          end
+        end
+      end
     end
   end
 end
