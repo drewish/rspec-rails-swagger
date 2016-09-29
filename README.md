@@ -51,7 +51,12 @@ RSpec.configure do |config|
   }
 end
 ```
-- Define your API (I definitely need to make this step more explicit)
+- Use the generator to help create a Swagger request spec. Running:
+```
+rails generate rspec:swagger PostsController
+```
+will give you a nice starting point with paths and operations for each method
+in the controller.
 
 ## Generate the docs
 
