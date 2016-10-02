@@ -12,68 +12,53 @@ The design of this was heavily influenced by the awesome [swagger_rails gem](htt
 
 ## Setup
 
-- Add the gem to your Rails app's `Gemfile`:
+Add the gem to your Rails app's `Gemfile`:
 ```rb
 group :development, :test do
   gem 'rspec-rails-swagger'
 end
 ```
-- If you don't already have a `spec/rails_helper.rb` file run:
-```shell
+
+Update your bundle:
+```
+bundle install
+```
+
+If you don't have a `spec/rails_helper.rb` file:
+```
 rails generate rspec:install
 ```
-- Create `spec/swagger_helper.rb` file (eventually [this will become a
-generator](https://github.com/drewish/rspec-rails-swagger/issues/3)):
-```rb
-require 'rspec/rails/swagger'
-require 'rails_helper'
 
-RSpec.configure do |config|
-  # Specify a root directory where the generated Swagger files will be saved.
-  config.swagger_root = Rails.root.to_s + '/swagger'
-
-  # Define one or more Swagger documents and global metadata for each.
-  config.swagger_docs = {
-    'v1/swagger.json' => {
-      swagger: '2.0',
-      info: {
-        title: 'API V1',
-        version: 'v1'
-      }
-    },
-    'v2/swagger.json' => {
-      swagger: '2.0',
-      info: {
-        title: 'API V2',
-        version: 'v2'
-      }
-    }
-  }
-end
+Create the `spec/swagger_helper.rb` file:
 ```
-- Use the generator to help create a Swagger request spec. Running:
+rails generate rspec:swagger_install
+```
+
+## Documenting Your API
+
+Now you can edit `spec/swagger_helper.rb` and start filling in the top level
+Swagger documention, e.g. basePath, [definitions](http://swagger.io/specification/#definitionsObject),
+[parameters](http://swagger.io/specification/#parametersDefinitionsObject),
+[tags](http://swagger.io/specification/#tagObject), etc.
+
+You can use the generator to create a spec to documentation a controller:
+
 ```
 rails generate rspec:swagger PostsController
 ```
-will give you a nice starting point with paths and operations for each method
-in the controller.
 
-## Generate the docs
+That will create a `spec/requests/posts_spec.rb` file with the paths, operations
+and some default requests filled in. With the structure in place you should only
+need to add `before` calls to create records and then update the `let`s to
+return the appropriate values.
+
+## Generate the JSON
+
+To create the Swagger JSON files use the rake task:
 
 ```
 bundle exec rake swagger
 ```
 
-## Running tests
-
-The `make_site.sh` script will create a test site for a specific version of
-Rails and run the tests:
-```
-RAILS_VERSION=4.2.0
-./make_site.sh
-```
-
-Once the test site is created you can just re-run the tests:
-```
-bundle exec rspec
-```
+Now you can use Swagger UI or the renderer of your choice to display the
+formatted documentation.
