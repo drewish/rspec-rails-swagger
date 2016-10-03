@@ -107,7 +107,7 @@ module RSpec
               operation[:parameters] = prepare_parameters(swagger_operation[:parameters])
             end
             operation.merge!(swagger_operation.slice(
-              :summary, :description, :externalDocs, :operationId,
+              :tags, :summary, :description, :externalDocs, :operationId,
               :consumes, :produces, :schemes, :deprecated, :security
             ))
           end

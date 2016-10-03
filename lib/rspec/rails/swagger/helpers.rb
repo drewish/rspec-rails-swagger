@@ -174,6 +174,10 @@ module RSpec
             metadata[:swagger_operation][:produces] = mime_types
           end
 
+          def tags *tags
+            metadata[:swagger_operation][:tags] = tags
+          end
+
           def response status_code, attributes = {}, &block
             attributes.symbolize_keys!
 
