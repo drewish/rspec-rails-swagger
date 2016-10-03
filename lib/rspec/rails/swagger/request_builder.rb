@@ -20,11 +20,11 @@ module RSpec
         end
 
         def produces
-          metadata[:swagger_operation][:produces] || document[:produces]
+          Array(metadata[:swagger_operation][:produces]).presence || Array(document[:produces])
         end
 
         def consumes
-          metadata[:swagger_operation][:consumes] || document[:consumes]
+          Array(metadata[:swagger_operation][:consumes]).presence || Array(document[:consumes])
         end
 
         def parameters location = nil
@@ -52,7 +52,7 @@ module RSpec
           headers = {}
 
           # Match the names that Rails uses internally
-          headers['HTTP_ACCEPT'] = produces.join(';') if produces.present?
+          headers['HTTP_ACCEPT'] = produces.first if produces.present?
           headers['CONTENT_TYPE'] = consumes.first if consumes.present?
 
           # TODO: do we need to do some capitalization to match the rack

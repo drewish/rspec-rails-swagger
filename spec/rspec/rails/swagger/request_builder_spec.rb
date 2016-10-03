@@ -37,11 +37,19 @@ RSpec.describe RSpec::Rails::Swagger::RequestBuilder do
     let(:document) { double }
     before { allow(subject).to receive(:document) { document } }
 
-    context 'with value in operation' do
+    context 'with string in operation' do
+      let(:metadata) { { swagger_operation: {produces: 'something' } } }
+
+      it 'converts it to an array' do
+        expect(subject.produces).to eq ['something']
+      end
+    end
+
+    context 'with array in operation' do
       let(:metadata) { { swagger_operation: {produces: 'something' } } }
 
       it 'uses that value' do
-        expect(subject.produces).to eq 'something'
+        expect(subject.produces).to eq ['something']
       end
     end
 
@@ -51,7 +59,7 @@ RSpec.describe RSpec::Rails::Swagger::RequestBuilder do
       it 'uses the value from the document' do
         expect(document).to receive(:[]).with(:produces) { 'or other' }
 
-        expect(subject.produces).to eq 'or other'
+        expect(subject.produces).to eq ['or other']
       end
     end
   end
@@ -61,11 +69,19 @@ RSpec.describe RSpec::Rails::Swagger::RequestBuilder do
     let(:document) { double }
     before { allow(subject).to receive(:document) { document } }
 
-    context 'with value in operation' do
+    context 'with string in operation' do
       let(:metadata) { { swagger_operation: {consumes: 'something' } } }
 
+      it 'converts it to an array' do
+        expect(subject.consumes).to eq ['something']
+      end
+    end
+
+    context 'with array in operation' do
+      let(:metadata) { { swagger_operation: {consumes: ['something'] } } }
+
       it 'uses that value' do
-        expect(subject.consumes).to eq 'something'
+        expect(subject.consumes).to eq ['something']
       end
     end
 
@@ -75,7 +91,7 @@ RSpec.describe RSpec::Rails::Swagger::RequestBuilder do
       it 'uses the value from the document' do
         expect(document).to receive(:[]).with(:consumes) { 'or other' }
 
-        expect(subject.consumes).to eq 'or other'
+        expect(subject.consumes).to eq ['or other']
       end
     end
   end
@@ -111,9 +127,16 @@ RSpec.describe RSpec::Rails::Swagger::RequestBuilder do
       allow(subject).to receive(:parameters).with(:header) { {} }
     end
 
-    context 'when produces is present' do
+    context 'when produces has a single value' do
       let(:produces) { ['foo/bar'] }
       it 'sets the Accept header' do
+        expect(subject.headers).to include('HTTP_ACCEPT' => 'foo/bar')
+      end
+    end
+
+    context 'when produces has multiple values' do
+      let(:produces) { ['foo/bar', 'bar/baz'] }
+      it 'sets the Accept header to the first' do
         expect(subject.headers).to include('HTTP_ACCEPT' => 'foo/bar')
       end
     end
@@ -124,9 +147,16 @@ RSpec.describe RSpec::Rails::Swagger::RequestBuilder do
       end
     end
 
-    context 'when consumes is present' do
+    context 'when consumes has a single value' do
       let(:consumes) { ['bar/baz'] }
       it 'sets the Content-Type header' do
+        expect(subject.headers).to include('CONTENT_TYPE' => 'bar/baz')
+      end
+    end
+
+    context 'when consumes has multiple values' do
+      let(:consumes) { ['bar/baz', 'flooz/flop'] }
+      it 'sets the Content-Type header to the first' do
         expect(subject.headers).to include('CONTENT_TYPE' => 'bar/baz')
       end
     end
