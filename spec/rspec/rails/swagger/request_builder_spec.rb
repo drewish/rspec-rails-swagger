@@ -170,6 +170,24 @@ RSpec.describe RSpec::Rails::Swagger::RequestBuilder do
     end
   end
 
+  describe '#env' do
+    subject { described_class.new(double('metadata'), instance) }
+    let(:instance) { double('instance') }
+
+    context 'with no env method on the instance' do
+      it 'returns empty hash' do
+        expect(subject.env).to eq({})
+      end
+    end
+
+    context 'with env method on the instance' do
+      it 'returns the results' do
+        allow(instance).to receive(:env) { { foo: :bar } }
+        expect(subject.env).to eq({foo: :bar})
+      end
+    end
+  end
+
   describe '#headers' do
     subject { described_class.new(double('metadata'), instance) }
     let(:instance) { double('instance') }
