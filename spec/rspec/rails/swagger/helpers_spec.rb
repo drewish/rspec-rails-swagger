@@ -186,6 +186,36 @@ RSpec.describe RSpec::Rails::Swagger::Helpers::Operation do
   end
   subject { klass.new }
 
+  describe '#consumes' do
+    before { subject.metadata = {swagger_operation: {}} }
+
+    it 'accepts an array' do
+      subject.consumes('foo', 'bar')
+
+      expect(subject.metadata[:swagger_operation][:consumes]).to eq ['foo', 'bar']
+    end
+  end
+
+  describe '#produces' do
+    before { subject.metadata = {swagger_operation: {}} }
+
+    it 'accepts an array' do
+      subject.produces('foo', 'bar')
+
+      expect(subject.metadata[:swagger_operation][:produces]).to eq ['foo', 'bar']
+    end
+  end
+
+  describe '#tags' do
+    before { subject.metadata = {swagger_operation: {}} }
+
+    it 'accepts an array' do
+      subject.tags('foo', 'bar')
+
+      expect(subject.metadata[:swagger_operation][:tags]).to eq ['foo', 'bar']
+    end
+  end
+
   describe '#response' do
     before { subject.metadata = {swagger_object: :operation} }
 

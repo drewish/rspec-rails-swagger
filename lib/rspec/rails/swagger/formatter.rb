@@ -62,7 +62,7 @@ module RSpec
           when :path_item
             ["\n", metadata[:swagger_path_item][:path]]
           when :operation
-            ["\n  ", metadata[:swagger_operation][:method].to_s, "\t"]
+            ["\n  ", "%-8s" % metadata[:swagger_operation][:method]]
           end
         end
 
@@ -107,7 +107,7 @@ module RSpec
               operation[:parameters] = prepare_parameters(swagger_operation[:parameters])
             end
             operation.merge!(swagger_operation.slice(
-              :summary, :description, :externalDocs, :operationId,
+              :tags, :summary, :description, :externalDocs, :operationId,
               :consumes, :produces, :schemes, :deprecated, :security
             ))
           end
