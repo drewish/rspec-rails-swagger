@@ -1,6 +1,6 @@
 require 'swagger_helper'
 
-RSpec.describe '<%= file_name %>', type: :request do
+RSpec.describe '<%= controller_path %>', type: :request do
 <% @routes.each do | template, path_item | %>
   path '<%= template %>' do
 <% unless path_item[:params].empty? -%>
