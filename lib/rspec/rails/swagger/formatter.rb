@@ -62,7 +62,7 @@ module RSpec
           when :path_item
             ["\n", metadata[:swagger_path_item][:path]]
           when :operation
-            ["\n  ", metadata[:swagger_operation][:method].to_s, "\t"]
+            ["\n  ", "%-8s" % metadata[:swagger_operation][:method]]
           end
         end
 
