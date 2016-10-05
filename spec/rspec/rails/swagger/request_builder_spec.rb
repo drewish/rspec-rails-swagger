@@ -98,21 +98,75 @@ RSpec.describe RSpec::Rails::Swagger::RequestBuilder do
 
   describe '#parameters' do
     subject { described_class.new(metadata, double('instance')) }
-    let(:metadata) { {
-      swagger_path_item: { parameters: {
-        'path&petId' => { name: 'petId', in: :path, description: 'path' },
-        'query&site' => { name: 'site', in: :query }
-      } },
-      swagger_operation: { parameters: {
-        'path&petId' => { name: 'petId', in: :path, description: 'op' }
-      } },
-    } }
+    let(:metadata) do
+      {
+        swagger_path_item: {
+          parameters: {
+            'path&petId' => { name: 'petId', in: :path, description: 'path' },
+            'query&site' => { name: 'site', in: :query }
+          }
+        },
+        swagger_operation: {
+          parameters: { 'path&petId' => { name: 'petId', in: :path, description: 'op' } }
+        }
+      }
+    end
 
     it 'merges values from the path and operation' do
       expect(subject.parameters).to eq({
         'path&petId' => { name: 'petId', in: :path, description: 'op' },
         'query&site' => { name: 'site', in: :query }
       })
+    end
+  end
+
+  describe '#parameter_values' do
+    subject { described_class.new(metadata, instance) }
+    let(:metadata) do
+      {
+        swagger_operation: {
+          parameters: {
+            "query&date" => { "$ref" => "#/parameters/filter_date" },
+            "query&subscriber" => { name: "subscriber", type: :string, in: :query, required: required }
+          }
+        }
+      }
+    end
+    let(:instance) { double('instance') }
+    before do
+      expect(subject).to receive_message_chain(:document, :resolve_ref) do
+        { name: "date", type: :integer, in: :query, required: required }
+      end
+    end
+
+    context 'required parameters' do
+      let(:required) { true }
+
+      it 'includes defined values' do
+        allow(instance).to receive(:date) { 10 }
+        allow(instance).to receive(:subscriber) { false }
+
+        expect(subject.parameter_values(:query)).to eq({ 'date' => 10, 'subscriber' => false })
+      end
+
+      it 'undefined cause errors' do
+        expect{ subject.parameter_values(:query) }.to raise_exception(RSpec::Mocks::MockExpectationError)
+      end
+    end
+
+    context 'optional parameters' do
+      let(:required) { false }
+
+      it 'includes defined values' do
+        allow(instance).to receive(:date) { 27 }
+        allow(instance).to receive(:subscriber) { true }
+
+        expect(subject.parameter_values(:query)).to eq({ 'date' => 27, 'subscriber' => true })
+      end
+
+      it 'ommits undefined values' do
+        expect(subject.parameter_values(:query)).to eq({})
+      end
     end
   end
 
@@ -170,7 +224,7 @@ RSpec.describe RSpec::Rails::Swagger::RequestBuilder do
     context 'with header params' do
       it 'returns them in a string' do
         expect(subject).to receive(:parameters).with(:header) { {
-          'header&X-Magic' => { same: :here }
+          'header&X-Magic' => { name: 'X-Magic', in: :header }
         } }
         expect(instance).to receive('X-Magic'.to_sym) { :pickles }
 
@@ -221,7 +275,7 @@ RSpec.describe RSpec::Rails::Swagger::RequestBuilder do
     context 'with query params' do
       it 'returns them in a string' do
         expect(subject).to receive(:parameters).with(:query) { {
-          'query&site' => { same: :here }
+          'query&site' => { name: 'site', in: :query }
         } }
         expect(instance).to receive(:site) { :pickles }
 
