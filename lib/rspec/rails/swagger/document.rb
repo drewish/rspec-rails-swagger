@@ -12,6 +12,8 @@ module RSpec
           data[value]
         end
 
+        ##
+        # Look up parameter or definition references.
         def resolve_ref(ref)
           unless %r{#/(?<location>parameters|definitions)/(?<name>.+)} =~ ref
             raise ArgumentError, "Invalid reference: #{ref}"

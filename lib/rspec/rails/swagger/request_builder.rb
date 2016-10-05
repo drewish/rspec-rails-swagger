@@ -4,10 +4,17 @@ module RSpec
       class RequestBuilder
         attr_reader :metadata, :instance
 
+        ##
+        # Creates a new RequestBuilder from the Example class's +metadata+ hash
+        # and a test +instance+ that we can use to populate the parameter
+        # values.
         def initialize(metadata, instance)
           @metadata, @instance = metadata, instance
         end
 
+        ##
+        # Finds the Document associated with this request so things like schema
+        # and parameter references can be resolved.
         def document
           @document ||= begin
             name = metadata[:swagger_document]
@@ -27,6 +34,9 @@ module RSpec
           Array(metadata[:swagger_operation][:consumes]).presence || Array(document[:consumes])
         end
 
+        ##
+        # Returns parameters defined in the operation and path item. Providing
+        # a +location+ will limit the parameters by their `in` value.
         def parameters location = nil
           path_item = metadata[:swagger_path_item] || {}
           operation = metadata[:swagger_operation] || {}
@@ -39,12 +49,10 @@ module RSpec
         end
 
         def parameter_values location
-          # Don't bother looking at the full parameter bodies since all we need
-          # are location and name which are in the key.
-          values = parameters(location)
-            .keys
-            .map{ |k| k.split('&').last }
-            .map{ |name| [name, instance.send(name)] }
+          values = parameters(location).
+            map{ |_, p| p['$ref'] ? document.resolve_ref(p['$ref']) : p }.
+            select{ |p| p[:required] || instance.respond_to?(p[:name]) }.
+            map{ |p| [p[:name], instance.send(p[:name])] }
           Hash[values]
         end
 
