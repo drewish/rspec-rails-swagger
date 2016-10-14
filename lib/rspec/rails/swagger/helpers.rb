@@ -204,13 +204,14 @@ module RSpec
                 method = builder.method
                 path = [builder.path, builder.query].join
                 headers = builder.headers
+                env = builder.env
                 body = builder.body
 
                 # Run the request
                 if ::Rails::VERSION::MAJOR >= 5
-                  self.send(method, path, {params: body, headers: headers})
+                  self.send(method, path, {params: body, headers: headers, env: env})
                 else
-                  self.send(method, path, body, headers)
+                  self.send(method, path, body, headers.merge(env))
                 end
 
                 if example.metadata[:capture_examples]

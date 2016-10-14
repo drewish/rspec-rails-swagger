@@ -36,7 +36,8 @@ module RSpec
 
         ##
         # Returns parameters defined in the operation and path item. Providing
-        # a +location+ will limit the parameters by their `in` value.
+        # a +location+ will filter the parameters to those with a matching +in+
+        # value.
         def parameters location = nil
           path_item = metadata[:swagger_path_item] || {}
           operation = metadata[:swagger_operation] || {}
@@ -68,6 +69,15 @@ module RSpec
           parameter_values(:header).each { |k, v| headers[k] = v }
 
           headers
+        end
+
+        ##
+        # If +instance+ defines an +env+ method this will return those values
+        # for inclusion in the Rack env hash.
+        def env
+          return {} unless instance.respond_to? :env
+
+          instance.env
         end
 
         def path
