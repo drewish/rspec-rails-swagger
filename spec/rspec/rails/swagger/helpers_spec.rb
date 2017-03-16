@@ -34,6 +34,17 @@ RSpec.describe RSpec::Rails::Swagger::Helpers::Paths do
 
     subject.path('/ping', swagger_document: 'hello_swagger.json')
   end
+
+  it "passes tags through to the metadata" do
+    expect(subject).to receive(:describe).with("/ping", {
+      swagger_object: :path_item,
+      swagger_document: RSpec.configuration.swagger_docs.keys.first,
+      swagger_path_item: {path: '/ping'},
+      tags: ['tag1']
+    })
+
+    subject.path('/ping', tags: ['tag1'])
+  end
 end
 
 RSpec.describe RSpec::Rails::Swagger::Helpers::PathItem do
@@ -80,6 +91,18 @@ RSpec.describe RSpec::Rails::Swagger::Helpers::PathItem do
         description: 'Updates a pet in the store with form data',
         operationId: 'updatePetWithForm'
       )
+    end
+
+    it 'includes tags from metadata of parent contexts' do
+      subject.metadata = { tags: ['baz'] }
+
+      expect(subject).to receive(:describe).with('get', {
+        swagger_object: :operation,
+        swagger_operation: {
+          tags: ['foo', 'baz'], method: :get
+        }
+      })
+      subject.operation(:get, tags: ['foo'])
     end
   end
 

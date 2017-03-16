@@ -42,13 +42,16 @@ module RSpec
             attributes.symbolize_keys!
 
             raise ArgumentError, "Path must start with a /" unless template.starts_with?('/')
-
             #TODO template might be a $ref
             meta = {
               swagger_object: :path_item,
               swagger_document: attributes[:swagger_document] || RSpec.configuration.swagger_docs.keys.first,
-              swagger_path_item: {path: template}
+              swagger_path_item: {path: template},
             }
+            # Merge tags passed into the path with those from parent contexts.
+            if attributes[:tags]
+              meta[:tags] = (metadata.try(:[], :tags) || []) + attributes[:tags]
+            end
             describe(template, meta, &block)
           end
         end
@@ -58,6 +61,12 @@ module RSpec
 
           def operation method, attributes = {}, &block
             attributes.symbolize_keys!
+            # Include tags from parent contexts so you can tag all the paths
+            # in a controller at once.
+            if metadata.try(:[], :tags).present?
+              attributes[:tags] ||= []
+              attributes[:tags] += metadata[:tags]
+            end
 
             method = method.to_s.downcase
             validate_method! method
@@ -175,7 +184,8 @@ module RSpec
           end
 
           def tags *tags
-            metadata[:swagger_operation][:tags] = tags
+            metadata[:swagger_operation][:tags] ||= []
+            metadata[:swagger_operation][:tags] += tags
           end
 
           def response status_code, attributes = {}, &block
