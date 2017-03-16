@@ -1,16 +1,10 @@
 require 'swagger_helper'
 
-RSpec.describe "Requestsing", type: :request do
-  # path "/ping" do
-  #   operation :put do
-  #     response(200, {description: 'OK'})
-  #     puts "in here"
-  #   end
-  # end
-
-  path '/posts' do
-    operation "GET", summary:"fetch list" do
+RSpec.describe "Sample Requests", type: :request, tags: [:context_tag] do
+  path '/posts', tags: ['path_tag'] do
+    operation "GET", summary: "fetch list" do
       produces 'application/json'
+      tags 'operation_tag'
 
       response(200, {description: "successful"})
     end
