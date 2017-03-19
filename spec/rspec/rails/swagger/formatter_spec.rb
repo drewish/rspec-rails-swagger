@@ -65,6 +65,53 @@ RSpec.describe RSpec::Rails::Swagger::Formatter do
         expect(formatter.documents['doc2.json'][:paths].length).to eq(1)
       end
     end
+
+    context "with a response examples" do
+      let(:metadata_examples) { {'application/json' => JSON.dump({foo: :bar})} }
+      let(:metadata) do
+        {
+            swagger_object: :response,
+            swagger_path_item: {path: "/ping"},
+            swagger_operation: {method: :put},
+            swagger_response:  {status_code: 200, description: "OK", examples: metadata_examples},
+        }
+      end
+
+      shared_examples 'response example formatter' do
+        it "copies the requests into the document" do
+          formatter.example_finished(example_notification)
+          expected_paths = {
+              '/ping' => {
+                  put: {
+                      responses: {200 => {examples: output_examples, description: 'OK'}}
+                  }
+              }
+          }
+          expect(formatter.documents.values.first[:paths]).to eq(expected_paths)
+        end
+      end
+
+      context "with a default formatter" do
+        before(:example) do
+          RSpec::Rails::Swagger::ResponseFormatters.register(
+              'application/json',
+              RSpec::Rails::Swagger::ResponseFormatters::JSON.new
+          )
+        end
+
+        let(:output_examples) { {'application/json' => {"foo" => "bar"}} }
+        include_examples 'response example formatter'
+      end
+
+      context "custom application/json formatter" do
+        before(:example) do
+          RSpec::Rails::Swagger::ResponseFormatters.register('application/json', ->(resp) { resp })
+        end
+
+        let(:output_examples) { {'application/json' => JSON.dump({foo: :bar})} }
+        include_examples 'response example formatter'
+      end
+    end
   end
 
   describe "#close" do
