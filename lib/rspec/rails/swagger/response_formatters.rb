@@ -16,8 +16,8 @@ module RSpec
         end
 
         @formatters = {
-            :none              => ->(resp) { resp },
-            'application/json' => JSON.new
+          :default => ->(resp) { resp },
+          'application/json' => JSON.new
         }
 
         class << self
@@ -27,7 +27,7 @@ module RSpec
           end
 
           def [](key)
-            @formatters[key] || @formatters[:none]
+            @formatters[key] || @formatters[:default]
           end
         end
 
