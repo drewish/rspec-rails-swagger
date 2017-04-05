@@ -99,7 +99,8 @@ module RSpec
         def body
           # And here all we need is the first half of the key to find the body
           # parameter and its name to fetch a value.
-          if key = parameters(:body).keys.first
+          key = parameters(:body).keys.first
+          if key
             instance.send(key.split('&').last).to_json
           end
         end
