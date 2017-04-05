@@ -17,19 +17,19 @@ module RSpec
         end
 
         def example_group_started(notification)
-          output.print *group_output(notification)
+          output.print(*group_output(notification))
         end
 
         def example_passed(notification)
-          output.print RSpec::Core::Formatters::ConsoleCodes.wrap(example_output(notification), :success)
+          output.print(RSpec::Core::Formatters::ConsoleCodes.wrap(example_output(notification), :success))
         end
 
         def example_pending(notification)
-          output.print RSpec::Core::Formatters::ConsoleCodes.wrap(example_output(notification), :pending)
+          output.print(RSpec::Core::Formatters::ConsoleCodes.wrap(example_output(notification), :pending))
         end
 
         def example_failed(notification)
-          output.print RSpec::Core::Formatters::ConsoleCodes.wrap(example_output(notification), :failure)
+          output.print(RSpec::Core::Formatters::ConsoleCodes.wrap(example_output(notification), :failure))
         end
 
         def example_finished(notification)

@@ -1,0 +1,19 @@
+---
+engines:
+  duplication:
+    enabled: true
+    exclude_paths:
+    - spec/
+    config:
+      languages:
+      - ruby
+  fixme:
+    enabled: true
+  rubocop:
+    enabled: true
+ratings:
+  paths:
+  - "**.rb"
+exclude_paths:
+- lib/generators/rspec/swagger/templates/
+- spec/testapp/
