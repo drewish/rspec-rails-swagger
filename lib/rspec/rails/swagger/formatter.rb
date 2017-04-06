@@ -130,12 +130,10 @@ module RSpec
         end
 
         def prepare_examples(examples)
-          if examples['application/json'].kind_of? String
-            begin
-              examples['application/json'] = JSON.parse(examples['application/json'])
-            rescue JSON::ParserError
-            end
+          examples.each_pair do |format, resp|
+            examples[format] = ResponseFormatters[format].call(resp)
           end
+
           examples
         end
       end
