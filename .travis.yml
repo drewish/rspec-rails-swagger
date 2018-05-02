@@ -1,10 +1,19 @@
 language: ruby
 rvm:
-  - 2.2.5
+  - 2.2
+  - 2.3
+  - 2.4
+  - 2.5
 env:
-  - "RAILS_VERSION=3.2.0"
-  - "RAILS_VERSION=4.2.0"
-  - "RAILS_VERSION=5.0.0"
+  - RAILS_VERSION=3.2.0
+  - RAILS_VERSION=4.2.0
+  - RAILS_VERSION=5.1.0
 cache: bundler
 install: ./make_site.sh
 script: bundle exec rspec
+matrix:
+  exclude:
+  - rvm: 2.4
+    env: RAILS_VERSION=3.2.0
+  - rvm: 2.5
+    env: RAILS_VERSION=3.2.0

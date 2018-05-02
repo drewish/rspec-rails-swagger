@@ -44,7 +44,7 @@ module RSpec
         end
 
         def close(_notification)
-          documents.each{|k, v| write_json(k, v)}
+          documents.each{|k, v| write_file(k, v)}
 
           self
         end
@@ -70,13 +70,33 @@ module RSpec
           " #{notification.example.metadata[:swagger_response][:status_code]}"
         end
 
-        def write_json(name, document)
-          root = ::RSpec.configuration.swagger_root
+        def write_file(name, document)
+          output =
+            if %w(.yaml .yml).include? File.extname(name)
+              YAML.dump(deep_stringify_keys(document))
+            else
+              JSON.pretty_generate(document) + "\n"
+            end
+
           # It would be good to at least warn if the name includes some '../' that
           # takes it out of root directory.
-          target = Pathname(name).expand_path(root)
+          target = Pathname(name).expand_path(::RSpec.configuration.swagger_root)
           target.dirname.mkpath
-          target.write(JSON.pretty_generate(document))
+          target.write(output)
+        end
+
+        # Lifted from ActiveSupport's Hash _deep_transform_keys_in_object
+        def deep_stringify_keys(object)
+          case object
+          when Hash
+            object.each_with_object({}) do |(key, value), result|
+              result[key.to_s] = deep_stringify_keys(value)
+            end
+          when Array
+            object.map { |e| deep_stringify_keys(e) }
+          else
+            object
+          end
         end
 
         def document_for(doc_name = nil)

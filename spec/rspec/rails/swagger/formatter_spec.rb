@@ -94,8 +94,8 @@ RSpec.describe RSpec::Rails::Swagger::Formatter do
       context "with a default formatter" do
         before(:example) do
           RSpec::Rails::Swagger::ResponseFormatters.register(
-              'application/json',
-              RSpec::Rails::Swagger::ResponseFormatters::JSON.new
+            'application/json',
+            RSpec::Rails::Swagger::ResponseFormatters::JSON.new
           )
         end
 
@@ -119,7 +119,7 @@ RSpec.describe RSpec::Rails::Swagger::Formatter do
 
     context "no relevant examples" do
       it "writes document with no changes" do
-        expect(formatter).to receive(:write_json).with(documents.keys.first, documents.values.first)
+        expect(formatter).to receive(:write_file).with(documents.keys.first, documents.values.first)
         formatter.close(blank_notification)
       end
     end
@@ -130,7 +130,7 @@ RSpec.describe RSpec::Rails::Swagger::Formatter do
         {
           swagger_object: :response,
           swagger_path_item: {path: "/ping"},
-          swagger_operation: {method: :get},
+          swagger_operation: {method: :get, produces: ["application/json"]},
           swagger_response:  {status_code: 200, description: 'all good'},
         }
       end
@@ -138,13 +138,14 @@ RSpec.describe RSpec::Rails::Swagger::Formatter do
       it "writes a document with the request" do
         formatter.example_finished(example_notification)
 
-        expect(formatter).to receive(:write_json).with(
+        expect(formatter).to receive(:write_file).with(
           documents.keys.first,
           documents.values.first.merge({
             paths: {
               '/ping' => {
                 get: {
-                  responses: {200 => {description: 'all good'}}
+                  responses: {200 => {description: 'all good'}},
+                  produces: ["application/json"]
                 }
               }
             }
@@ -152,6 +153,72 @@ RSpec.describe RSpec::Rails::Swagger::Formatter do
         )
 
         formatter.close(blank_notification)
+      end
+
+      describe 'output formats' do
+        let(:documents) { {file_name => minimal} }
+
+        subject do
+          formatter.example_finished(example_notification)
+          formatter.close(blank_notification)
+          Pathname(file_name).expand_path(::RSpec.configuration.swagger_root).read
+        end
+
+        %w(yaml yml).each do |extension|
+          context "with a name that ends in .#{extension}" do
+            let(:file_name) { "minimal.#{extension}" }
+
+            it 'outputs YAML' do
+              expect(subject).to eq <<YAML
+---
+swagger: '2.0'
+info:
+  version: 0.0.0
+  title: Simple API
+paths:
+  "/ping":
+    get:
+      responses:
+        '200':
+          description: all good
+      produces:
+      - application/json
+YAML
+            end
+          end
+        end
+
+        %w(json txt).each do |extension|
+          context "with a name that ends in .#{extension}" do
+            let(:file_name) { "minimal.#{extension}" }
+
+            it 'outputs JSON' do
+              expect(subject).to eq <<JSON
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "0.0.0",
+    "title": "Simple API"
+  },
+  "paths": {
+    "/ping": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "all good"
+          }
+        },
+        "produces": [
+          "application/json"
+        ]
+      }
+    }
+  }
+}
+JSON
+            end
+          end
+        end
       end
     end
   end
