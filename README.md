@@ -4,9 +4,9 @@
 [![Code Climate](https://codeclimate.com/github/drewish/rspec-rails-swagger/badges/gpa.svg)](https://codeclimate.com/github/drewish/rspec-rails-swagger)
 
 This gem helps you generate Swagger docs by using RSpec to document the paths.
-You execute a command to run the tests and generate the `.json` output. Running
-the tests ensures that your API and docs are in agreement, and generates output
-that can be used as examples.
+You execute a command to run the tests and generate the `.yaml` or `.json` output.
+Running the tests ensures that your API and docs are in agreement, and generates
+output that can be saved as response examples.
 
 The design of this was heavily influenced by the awesome [swagger_rails gem](https://github.com/domaindrivendev/swagger_rails).
 
@@ -52,9 +52,9 @@ and some default requests filled in. With the structure in place you should only
 need to add `before` calls to create records and then update the `let`s to
 return the appropriate values.
 
-## Generate the JSON
+## Generate the JSON or YAML
 
-To create the Swagger JSON files use the rake task:
+To create the Swagger files use the rake task:
 
 ```
 bundle exec rake swagger
