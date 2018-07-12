@@ -47,6 +47,8 @@ module RSpec
           else
             params
           end
+
+          params
         end
 
         def parameter_values location
