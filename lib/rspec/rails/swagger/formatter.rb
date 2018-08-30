@@ -73,7 +73,7 @@ module RSpec
         def write_file(name, document)
           output =
             if %w(.yaml .yml).include? File.extname(name)
-              YAML.dump(deep_stringify_keys(document))
+              YAML.dump(deep_stringify(document))
             else
               JSON.pretty_generate(document) + "\n"
             end
@@ -85,15 +85,19 @@ module RSpec
           target.write(output)
         end
 
-        # Lifted from ActiveSupport's Hash _deep_transform_keys_in_object
-        def deep_stringify_keys(object)
+        # Converts hash keys and symbolic values into strings.
+        #
+        # Based on ActiveSupport's Hash _deep_transform_keys_in_object
+        def deep_stringify(object)
           case object
           when Hash
             object.each_with_object({}) do |(key, value), result|
-              result[key.to_s] = deep_stringify_keys(value)
+              result[key.to_s] = deep_stringify(value)
             end
           when Array
-            object.map { |e| deep_stringify_keys(e) }
+            object.map { |e| deep_stringify(e) }
+          when Symbol
+            object.to_s
           else
             object
           end
