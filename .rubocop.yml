@@ -678,7 +678,7 @@ Style/IndentationConsistency:
 Style/IndentationWidth:
   Description: 'Use 2 spaces for indentation.'
   StyleGuide: 'https://github.com/bbatsov/ruby-style-guide#spaces-indentation'
-  Enabled: false
+  Enabled: true
 
 Style/IndentArray:
   Description: >-
@@ -708,7 +708,7 @@ Style/LambdaCall:
 Style/LeadingCommentSpace:
   Description: 'Comments should start with a space.'
   StyleGuide: 'https://github.com/bbatsov/ruby-style-guide#hash-space'
-  Enabled: false
+  Enabled: true
 
 Style/LineEndConcatenation:
   Description: >-

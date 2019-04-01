@@ -1,20 +1,17 @@
 #!/bin/bash
-set -x
+set -x -e
 
-# export RAILS_VERSION=3.2.0
-# export RAILS_VERSION=4.0.0
-# export RAILS_VERSION=5.0.0
 major=$(echo $RAILS_VERSION | cut -d '.' -f1)
 
-rm Gemfile.lock
+rm Gemfile.lock || true
 bundle install
 
-rm -r spec/testapp
+rm -r spec/testapp || true
 bundle exec rails new spec/testapp --api -d sqlite3 --skip-gemfile --skip-bundle --skip-test-unit --skip-action-mailer --skip-puma --skip-action-cable --skip-sprockets --skip-javascript --skip-spring --skip-listen
 cd spec/testapp
 
 bundle exec rails generate scaffold Post title:string body:text
-rm -r spec
+rm -r spec || true
 
 if [ $major -eq 5 ]
 then
@@ -26,7 +23,3 @@ else
 fi
 
 cd -
-
-bundle exec rspec
-# Duplicating the body of the rake task. Need to figure out how to call it directly.
-bundle exec rspec -f RSpec::Rails::Swagger::Formatter --order defined -t swagger_object

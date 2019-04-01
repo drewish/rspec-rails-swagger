@@ -3,22 +3,23 @@ source "https://rubygems.org"
 gemspec
 
 # Allow the rails version to come from an ENV setting so Tavis can test multiple
-# versions. Inspired by http://www.schneems.com/post/50991826838/testing-against-multiple-rails-versions/
-rails_version = ENV['RAILS_VERSION'] || '3.2.22'
+# versions.
+rails_version = ENV['RAILS_VERSION'] || '5.2.0'
 rails_major = rails_version.split('.').first
-rails_gem = case rails_version
-            when "default" then
-              "~> 5.0.0"
-            else
-              "~> #{rails_version}"
-            end
 
-gem 'rails', rails_gem
-gem 'sqlite3'
+gem 'rails', "~> #{rails_version}"
 gem 'pry'
 gem 'pry-byebug'
+gem 'sqlite3', '~> 1.3.13'
 
-# Rails 3 requires this but it was removed in Ruby 2.2
-gem 'test-unit', '~> 3.0' if rails_major == '3'
-# Need this for Rails 4 to get the JSON responses from the scaffold
-gem 'jbuilder' if rails_major == '4'
+case rails_major
+when '3'
+  # Rails 3 requires this but it was removed in Ruby 2.2
+  gem 'test-unit', '~> 3.0'
+when '4'
+  # Need this for Rails 4 to get the JSON responses from the scaffold
+  gem 'jbuilder'
+when '5'
+  # Required for 5.2+
+  gem 'bootsnap'
+end
