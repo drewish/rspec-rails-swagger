@@ -2,14 +2,14 @@
 
 ## Running tests
 
-The `make_site.sh` script will create a test site for a specific version of
-Rails and run the tests:
+The `scripts/make_site.sh` script will create a test site for a specific version of
+Rails:
 ```
-RAILS_VERSION=4.2.0
-./make_site.sh
+export RAILS_VERSION=4.2.0
+scripts/make_site.sh
 ```
 
-Once the test site is created you can just re-run the tests:
+Once the test site is created you can run the tests:
 ```
-bundle exec rspec
+scripts/run_tests.sh
 ```
