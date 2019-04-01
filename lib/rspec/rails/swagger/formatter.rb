@@ -37,7 +37,7 @@ module RSpec
           return unless metadata[:swagger_object] == :response
 
           # Then add everything to the document
-          document  = document_for(metadata[:swagger_document])
+          document  = document_for(metadata[:swagger_doc])
           path_item = path_item_for(document, metadata[:swagger_path_item])
           operation = operation_for(path_item, metadata[:swagger_operation])
           response  = response_for(operation, metadata[:swagger_response])

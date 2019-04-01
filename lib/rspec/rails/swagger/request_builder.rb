@@ -17,8 +17,7 @@ module RSpec
         # and parameter references can be resolved.
         def document
           @document ||= begin
-            name = metadata[:swagger_document]
-            Document.new(RSpec.configuration.swagger_docs[name])
+            Document.new(RSpec.configuration.swagger_docs[metadata[:swagger_doc]])
           end
         end
 

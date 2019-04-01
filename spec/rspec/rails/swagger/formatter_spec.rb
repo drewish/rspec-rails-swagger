@@ -51,7 +51,7 @@ RSpec.describe RSpec::Rails::Swagger::Formatter do
       let(:metadata) do
         {
           swagger_object: :response,
-          swagger_document: 'doc2.json',
+          swagger_doc: 'doc2.json',
           swagger_path_item: {path: "/ping"},
           swagger_operation: {method: :put},
           swagger_response:  {status_code: 200, description: "OK"},

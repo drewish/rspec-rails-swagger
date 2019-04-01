@@ -37,7 +37,7 @@ rails generate rspec:swagger_install
 ## Documenting Your API
 
 Now you can edit `spec/swagger_helper.rb` and start filling in the top level
-Swagger documention, e.g. basePath, [definitions](http://swagger.io/specification/#definitionsObject),
+Swagger documentation, e.g. basePath, [definitions](http://swagger.io/specification/#definitionsObject),
 [parameters](http://swagger.io/specification/#parametersDefinitionsObject),
 [tags](http://swagger.io/specification/#tagObject), etc.
 
@@ -66,7 +66,7 @@ works pretty well and supports multiple documents.
 
 ## RSpec DSL
 
-The DSL follows the hierachy of the Swagger Schema:
+The DSL follows the hierarchy of the Swagger Schema:
 
 - [Paths Object](http://swagger.io/specification/#paths-object-29)
   - [Path Item Object](http://swagger.io/specification/#path-item-object-32)
@@ -98,7 +98,7 @@ RSpec.describe "Posts Controller", type: :request do
   # Path Object
   path '/posts/{post_id}' do
     # Parameter Object
-    parameter "post_id", {in: :path, type: :integer}
+    parameter "post_id", { in: :path, type: :integer }
     let(:post_id) { 1 }
 
     # Operation Object
@@ -113,20 +113,20 @@ RSpec.describe "Posts Controller", type: :request do
     # Parameter Object for content type could be defined like:
     consumes 'application/json'
     # or:
-    parameter 'Content-Type', {in: :header, type: :string}
+    parameter 'Content-Type', { in: :header, type: :string }
     let(:'Content-Type') { 'application/json' }
     # one of them would be considered
 
     # authorization token in the header:
-    parameter 'Authorization', {in: :header, type: :string}
+    parameter 'Authorization', { in: :header, type: :string }
     let(:'Authorization') { 'Bearer <token-here>' }
 
     # Parameter Object
-    parameter "post_id", {in: :path, type: :integer}
+    parameter "post_id", { in: :path, type: :integer }
     let(:post_id) { 1 }
 
     # Parameter Object for Body
-    parameter "body", {in: :body, required: true, schema: {
+    parameter "body", { in: :body, required: true, schema: {
       type: :object,
         properties: {
           title: { type: :string },
@@ -134,9 +134,9 @@ RSpec.describe "Posts Controller", type: :request do
         }
     }
     let (:body) {
-      { post: 
-        { title: 'my example', 
-          author_email: 'me@example.com' } 
+      { post:
+        { title: 'my example',
+          author_email: 'me@example.com' }
         }
       }
     }
@@ -158,11 +158,43 @@ These methods are available inside of an RSpec contexts with the `type: :request
 #### `path(template, attributes = {}, &block)`
 Defines a new Path Item.
 
+The `attributes` parameter accepts:
+- `swagger_doc` a key in `RSpec.configuration.swagger_docs` that determines
+  which file the path belongs in.
+- `tags` with an array of tags that will be applied to the child Operations.
+
+You can also provide a default file and tags by setting them on a parent RSpec
+context block:
+```rb
+RSpec.describe "Sample Requests", type: :request do
+  # The swagger_doc will be used as a default for the paths defined within the
+  # context block. Similarly, the tags will be merged with those set on paths
+  # defined within them.
+  context "setting defaults", swagger_doc: 'default_document.json', tags: [:context_tag] do
+    path '/posts', swagger_doc: 'overridden_document.yaml' tags: ['path_tag'] do
+      operation "GET", summary: "fetch list" do
+        produces 'application/json'
+        tags 'operation_tag'
+
+        response(200, { description: "successful" })
+      end
+    end
+  end
+end
+```
+The `GET /posts` operation in this example will be saved in the `'overridden_document.yaml'`
+file and tagged with `["context_tag", "path_tag", "operation_tag"]`.
+
+
 ### Path Item Object
 These methods are available inside of blocks passed to the `path` method.
 
 #### `operation(method, attributes = {}, &block)`
 Defines a new Operation Object. The `method` is case insensitive.
+
+The `attributes` parameter accepts:
+- `tags` with an array of tags. These will be merged with tags passed to the
+  Path Item or `tags` method inside the Operation's block.
 
 #### `delete(attributes = {}, &block)`
 Alias for `operation(:delete, attributes, block)`.
@@ -203,7 +235,7 @@ parameter ref: "#/parameters/site_id"
 Values for the parameters are set using `let`:
 ```rb
 post summary: "create" do
-  parameter "body", in: :body, schema: { foo: :bar}
+  parameter "body", in: :body, schema: { foo: :bar }
   let(:body) { { post: { title: 'asdf', body: "blah" } } }
   # ...
 end
@@ -245,7 +277,7 @@ RSpec.describe "Sample Requests", type: :request, tags: [:context_tag] do
       produces 'application/json'
       tags 'operation_tag'
 
-      response(200, {description: "successful"})
+      response(200, { description: "successful" })
     end
   end
 end
