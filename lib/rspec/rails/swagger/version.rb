@@ -3,7 +3,7 @@ module RSpec
     # Version information for RSpec Swagger.
     module Swagger
       module Version
-        STRING = '0.1.5'
+        STRING = '0.2.0'
       end
     end
   end

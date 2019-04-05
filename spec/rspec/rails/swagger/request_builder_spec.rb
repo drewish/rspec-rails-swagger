@@ -14,7 +14,7 @@ RSpec.describe RSpec::Rails::Swagger::RequestBuilder do
 
   describe '#document' do
     subject { described_class.new(metadata, double('instance')) }
-    let(:metadata) { { swagger_document: 'example.json' } }
+    let(:metadata) { { swagger_doc: 'example.json' } }
 
     it 'loads the document' do
       allow(RSpec.configuration.swagger_docs).to receive(:[]).with('example.json').and_return({foo: :bar})

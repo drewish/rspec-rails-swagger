@@ -1,52 +1,5 @@
 require 'swagger_helper'
 
-RSpec.describe RSpec::Rails::Swagger::Helpers::Paths do
-  let(:klass) do
-    Class.new do
-      include RSpec::Rails::Swagger::Helpers::Paths
-      attr_accessor :metadata
-      def describe *args ; end
-    end
-  end
-  subject { klass.new }
-
-  it "requires the path start with a /" do
-    expect{ subject.path("foo") }.to raise_exception(ArgumentError)
-    expect{ subject.path("/foo") }.not_to raise_exception
-  end
-
-  it "defaults to the first swagger document if not specified" do
-    expect(subject).to receive(:describe).with("/ping", {
-      swagger_object: :path_item,
-      swagger_document: RSpec.configuration.swagger_docs.keys.first,
-      swagger_path_item: {path: '/ping'}
-    })
-
-    subject.path('/ping')
-  end
-
-  it "accepts specified swagger document name" do
-    expect(subject).to receive(:describe).with("/ping", {
-      swagger_object: :path_item,
-      swagger_document: 'hello_swagger.json',
-      swagger_path_item: {path: '/ping'}
-    })
-
-    subject.path('/ping', swagger_document: 'hello_swagger.json')
-  end
-
-  it "passes tags through to the metadata" do
-    expect(subject).to receive(:describe).with("/ping", {
-      swagger_object: :path_item,
-      swagger_document: RSpec.configuration.swagger_docs.keys.first,
-      swagger_path_item: {path: '/ping'},
-      tags: ['tag1']
-    })
-
-    subject.path('/ping', tags: ['tag1'])
-  end
-end
-
 RSpec.describe RSpec::Rails::Swagger::Helpers::PathItem do
   let(:klass) do
     Class.new do

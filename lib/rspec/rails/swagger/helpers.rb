@@ -45,7 +45,7 @@ module RSpec
             #TODO template might be a $ref
             meta = {
               swagger_object: :path_item,
-              swagger_document: attributes[:swagger_document] || RSpec.configuration.swagger_docs.keys.first,
+              swagger_doc: attributes[:swagger_doc] || default_document,
               swagger_path_item: {path: template},
             }
             # Merge tags passed into the path with those from parent contexts.
@@ -53,6 +53,12 @@ module RSpec
               meta[:tags] = (metadata.try(:[], :tags) || []) + attributes[:tags]
             end
             describe(template, meta, &block)
+          end
+
+          private
+
+          def default_document
+            metadata.try(:[], :swagger_doc) || RSpec.configuration.swagger_docs.keys.first
           end
         end
 
@@ -122,7 +128,7 @@ module RSpec
           def resolve_document metadata
             # TODO: It's really inefficient to keep recreating this. It'd be nice
             # if we could cache them some place.
-            name = metadata[:swagger_document]
+            name = metadata[:swagger_doc]
             Document.new(RSpec.configuration.swagger_docs[name])
           end
 
