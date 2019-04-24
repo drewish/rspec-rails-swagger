@@ -32,6 +32,48 @@ module RSpec
           end
         end
 
+        def path_item_for(document, swagger_path_item)
+          name = swagger_path_item[:path]
+
+          document[:paths] ||= {}
+          document[:paths][name] ||= {}
+          if swagger_path_item[:parameters]
+            apply_params(document[:paths][name], swagger_path_item[:parameters].dup)
+          end
+          document[:paths][name]
+        end
+
+        def operation_for(path, swagger_operation)
+          method = swagger_operation[:method]
+
+          path[method] ||= {responses: {}}
+          path[method].tap do |operation|
+            if swagger_operation[:parameters]
+              apply_params(operation, swagger_operation[:parameters].dup)
+            end
+            operation.merge!(swagger_operation.slice(
+              :tags, :summary, :description, :externalDocs, :operationId,
+              :consumes, :produces, :schemes, :deprecated, :security
+            ))
+          end
+        end
+
+        def apply_params(object, parameters)
+          body = parameters.delete('body&body')
+          if body
+            object[:requestBody] = {
+              required: body[:required],
+              content: {
+                'application/json': {
+                  schema: body[:schema],
+                  examples: body[:examples]
+                }
+              }
+            }
+          end
+          object[:parameters] = prepare_parameters(parameters)
+        end
+
       end
     end
   end
