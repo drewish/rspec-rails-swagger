@@ -14,6 +14,9 @@ module RSpec
         def response_for(operation, swagger_response)
           status = swagger_response[:status_code]
 
+          content_type = operation[:consumes] && operation[:consumes][0] || 'application/json'
+          operation.delete(:consumes)
+
           operation[:responses][status] ||= {}
           operation[:responses][status].tap do |response|
 
@@ -25,7 +28,7 @@ module RSpec
                 response[:content][format] ||= {schema: schema.merge(example: formatted)}
               end
             elsif swagger_response[:schema]
-              response[:content] = {'application/json' => {schema: schema}}
+              response[:content] = {content_type => {schema: schema}}
             end
 
             response.merge!(swagger_response.slice(:description, :headers))
@@ -66,12 +69,16 @@ module RSpec
               content: {
                 'application/json': {
                   schema: body[:schema],
-                  examples: body[:examples]
+                  examples: body[:examples] || {}
                 }
               }
             }
           end
-          object[:parameters] = prepare_parameters(parameters)
+
+          object[:parameters] = parameters.values.map do |param|
+            param.slice(:in, :name, :required, :schema, :description, :style,
+                        :explode, :allowEmptyValue, :example, :examples, :deprecated)
+          end
         end
 
       end
