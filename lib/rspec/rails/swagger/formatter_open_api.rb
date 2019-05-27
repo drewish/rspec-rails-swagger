@@ -19,20 +19,23 @@ module RSpec
 
           operation[:responses][status] ||= {}
           operation[:responses][status].tap do |response|
-
-            if swagger_response[:examples]
-              schema = swagger_response[:schema] || {}
-              response[:content] ||= {}
-              swagger_response[:examples].each_pair do |format, resp|
-                formatted = ResponseFormatters[format].call(resp)
-                response[:content][format] ||= {schema: schema.merge(example: formatted)}
-              end
-            elsif swagger_response[:schema]
-              response[:content] = {content_type => {schema: schema}}
-            end
-
-            response.merge!(swagger_response.slice(:description, :headers))
+            prepare_response_contents(response, swagger_response)
           end
+        end
+
+        def prepare_response_contents(response, swagger_response)
+          if swagger_response[:examples]
+            schema = swagger_response[:schema] || {}
+            response[:content] ||= {}
+            swagger_response[:examples].each_pair do |format, resp|
+              formatted = ResponseFormatters[format].call(resp)
+              response[:content][format] ||= {schema: schema.merge(example: formatted)}
+            end
+          elsif swagger_response[:schema]
+            response[:content] = {content_type => {schema: schema}}
+          end
+
+          response.merge!(swagger_response.slice(:description, :headers))
         end
 
         def path_item_for(document, swagger_path_item)
