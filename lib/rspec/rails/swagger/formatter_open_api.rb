@@ -70,7 +70,7 @@ module RSpec
             object[:requestBody] = {
               required: body[:required],
               content: {
-                'application/json': {
+                'application/json' => {
                   schema: body[:schema],
                   examples: body[:examples] || {}
                 }
