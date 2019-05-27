@@ -19,11 +19,11 @@ module RSpec
 
           operation[:responses][status] ||= {}
           operation[:responses][status].tap do |response|
-            prepare_response_contents(response, swagger_response)
+            prepare_response_contents(response, swagger_response, content_type)
           end
         end
 
-        def prepare_response_contents(response, swagger_response)
+        def prepare_response_contents(response, swagger_response, content_type)
           if swagger_response[:examples]
             schema = swagger_response[:schema] || {}
             response[:content] ||= {}
@@ -32,7 +32,7 @@ module RSpec
               response[:content][format] ||= {schema: schema.merge(example: formatted)}
             end
           elsif swagger_response[:schema]
-            response[:content] = {content_type => {schema: schema}}
+            response[:content] = {content_type => {schema: swagger_response[:schema]}}
           end
 
           response.merge!(swagger_response.slice(:description, :headers))

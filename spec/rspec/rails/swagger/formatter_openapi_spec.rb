@@ -123,6 +123,43 @@ RSpec.describe RSpec::Rails::Swagger::FormatterOpenApi do
         include_examples 'response example formatter'
       end
     end
+
+    context "with a response schema" do
+      let(:metadata) do
+        {
+          swagger_object: :response,
+          swagger_path_item: {path: "/ping"},
+          swagger_operation: {method: :put},
+          swagger_response:  {
+            status_code: 200,
+            description: "OK",
+            schema: { '$ref': "#/components/schemas/BasicRequest" }
+          }
+        }
+      end
+
+      it "copies the requests into the document" do
+        formatter.example_finished(example_notification)
+        expected_paths = {
+          '/ping' => {
+            put: {
+              responses: {
+                200 => {
+                  content: {
+                    "application/json" => {
+                      schema: { '$ref': "#/components/schemas/BasicRequest" }
+                    }
+                  },
+                  description: "OK"
+                }
+              }
+            }
+          }
+        }
+
+        expect(formatter.documents.values.first[:paths]).to eq(expected_paths)
+      end
+    end
   end
 
   describe "#close" do
