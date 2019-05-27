@@ -6,7 +6,7 @@ require_relative 'formatter'
 module RSpec
   module Rails
     module Swagger
-      class Formatter_V3 < RSpec::Rails::Swagger::Formatter
+      class FormatterOpenApi < RSpec::Rails::Swagger::Formatter
         RSpec::Core::Formatters.register self, :example_group_started,
           :example_passed, :example_pending, :example_failed, :example_finished,
           :close

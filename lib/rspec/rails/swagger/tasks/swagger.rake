@@ -6,7 +6,7 @@ RSpec::Core::RakeTask.new(:swagger) do |t|
   t.rspec_opts = "-f RSpec::Rails::Swagger::Formatter --order defined -t swagger_object"
 end
 
-RSpec::Core::RakeTask.new(:swagger_v3) do |t|
+RSpec::Core::RakeTask.new(:openapi) do |t|
   t.verbose = false
-  t.rspec_opts = "-f RSpec::Rails::Swagger::Formatter_V3 --order defined -t swagger_object"
+  t.rspec_opts = "-f RSpec::Rails::Swagger::FormatterOpenApi --order defined -t swagger_object"
 end
