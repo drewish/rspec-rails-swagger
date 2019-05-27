@@ -133,7 +133,7 @@ RSpec.describe RSpec::Rails::Swagger::FormatterOpenApi do
           swagger_response:  {
             status_code: 200,
             description: "OK",
-            schema: { '$ref': "#/components/schemas/BasicRequest" }
+            schema: { :'$ref' => "#/components/schemas/BasicRequest" }
           }
         }
       end
@@ -147,7 +147,7 @@ RSpec.describe RSpec::Rails::Swagger::FormatterOpenApi do
                 200 => {
                   content: {
                     "application/json" => {
-                      schema: { '$ref': "#/components/schemas/BasicRequest" }
+                      schema: { :'$ref' => "#/components/schemas/BasicRequest" }
                     }
                   },
                   description: "OK"
