@@ -13,6 +13,5 @@ Gem::Specification.new do |s|
   s.homepage    = 'https://github.com/drewish/rspec-rails-swagger'
 
   s.required_ruby_version = '~> 2.0'
-  s.add_runtime_dependency 'rails', '>= 3.1'
   s.add_runtime_dependency 'rspec-rails', '~> 3.0'
 end
