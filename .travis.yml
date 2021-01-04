@@ -2,9 +2,14 @@ language: ruby
 rvm:
   - 2.6
   - 2.7
+  - 3.0
 env:
   - RAILS_VERSION=5.2.4.4
   - RAILS_VERSION=6.1.0
 cache: bundler
 install: scripts/make_site.sh
 script: scripts/run_tests.sh
+matrix:
+  exclude:
+  - rvm: 3.0
+    env: RAILS_VERSION=5.2.4.4
