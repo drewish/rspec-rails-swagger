@@ -1,26 +1,10 @@
 language: ruby
 rvm:
-  - 2.3
-  - 2.4
-  - 2.5
   - 2.6
+  - 2.7
 env:
-  - RAILS_VERSION=3.2.0
-  - RAILS_VERSION=4.2.0
-  - RAILS_VERSION=5.2.0
+  - RAILS_VERSION=5.2.4.4
+  - RAILS_VERSION=6.1.0
 cache: bundler
-before_install:
-  # Revert to bundler 1.x for compatibility with Rails 4.2 on Ruby 2.5
-  - "find /home/travis/.rvm/rubies -wholename '*default/bundler-*.gemspec' -delete"
-  - rvm @global do gem uninstall bundler -a -x -I || true
-  - gem install bundler -v '~> 1.17'
 install: scripts/make_site.sh
 script: scripts/run_tests.sh
-matrix:
-  exclude:
-  - rvm: 2.4
-    env: RAILS_VERSION=3.2.0
-  - rvm: 2.5
-    env: RAILS_VERSION=3.2.0
-  - rvm: 2.6
-    env: RAILS_VERSION=3.2.0
