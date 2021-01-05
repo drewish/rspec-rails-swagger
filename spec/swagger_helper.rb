@@ -26,6 +26,13 @@ RSpec.configure do |config|
         title: 'API V1',
         version: 'v1'
       }
+    },
+    'v1/openapi.json' => {
+      openapi: '3.0.0',
+      info: {
+        title: 'API V1',
+        version: 'v1'
+      }
     }
   }
 end

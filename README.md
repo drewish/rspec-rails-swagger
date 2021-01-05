@@ -60,6 +60,13 @@ To create the Swagger files use the rake task:
 bundle exec rake swagger
 ```
 
+For OpenAPI use:
+
+```
+bundle exec rake openapi
+```
+
+
 Now you can use Swagger UI or the renderer of your choice to display the
 formatted documentation. [swagger_engine](https://github.com/batdevis/swagger_engine)
 works pretty well and supports multiple documents.

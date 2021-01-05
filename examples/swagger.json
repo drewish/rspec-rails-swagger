@@ -1,0 +1,106 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "API V1",
+    "version": "v1"
+  },
+  "paths": {
+    "/posts": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "successful"
+          }
+        },
+        "tags": [
+          "context_tag",
+          "path_tag",
+          "operation_tag"
+        ],
+        "summary": "fetch list",
+        "produces": [
+          "application/json"
+        ]
+      },
+      "post": {
+        "responses": {
+          "201": {
+            "description": "successfully created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "id": 1,
+                    "title": "asdf",
+                    "body": "blah",
+                    "created_at": "2019-05-27T09:54:55.606Z",
+                    "updated_at": "2019-05-27T09:54:55.606Z"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": null,
+          "content": {
+            "application/json": {
+              "schema": {
+                "foo": "bar"
+              },
+              "examples": {
+              }
+            }
+          }
+        },
+        "parameters": [
+
+        ],
+        "tags": [
+          "context_tag",
+          "path_tag"
+        ],
+        "summary": "create",
+        "produces": [
+          "application/json"
+        ]
+      }
+    },
+    "/posts/{post_id}": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "post_id",
+          "required": true
+        }
+      ],
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "id": 1,
+                    "title": null,
+                    "body": null,
+                    "created_at": "2019-05-27T09:54:55.611Z",
+                    "updated_at": "2019-05-27T09:54:55.611Z"
+                  }
+                }
+              }
+            },
+            "description": "success"
+          }
+        },
+        "tags": [
+          "context_tag"
+        ],
+        "summary": "fetch item",
+        "produces": [
+          "application/json"
+        ]
+      }
+    }
+  }
+}
