@@ -225,7 +225,7 @@ module RSpec
 
                 # Run the request
                 if ::Rails::VERSION::MAJOR >= 5
-                  self.send(method, path, {params: body, headers: headers, env: env})
+                  self.send(method, path, params: body, headers: headers, env: env)
                 else
                   self.send(method, path, body, headers.merge(env))
                 end
