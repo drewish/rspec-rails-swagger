@@ -80,6 +80,8 @@ module RSpec
         end
 
         def path
+          instance.host!(document[:host]) if document[:host].present?
+
           base_path = document[:basePath] || ''
           # Find params in the path and replace them with values defined in
           # in the example group.
